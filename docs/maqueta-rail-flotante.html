@@ -1,0 +1,1511 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opal: rail flotante</title>
+<!--
+  Maqueta del shell de Opal con el rail como hoja flotante. Archivo único, sin
+  red: los tokens y las piezas de Opal están copiados acá (condensados) y los
+  íconos son los de renderer/js/icons.js. El panel de la derecha NO es parte de
+  la app: son las perillas de la maqueta.
+-->
+<style>
+@font-face { font-family: 'Roboto Mono'; font-weight: 400; src: url('../renderer/fonts/roboto-mono-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Roboto Mono'; font-weight: 500; src: url('../renderer/fonts/roboto-mono-latin-500-normal.woff2') format('woff2'); }
+
+/* ══ Tokens de Opal (los de hoy) ══════════════════════════════════════════ */
+:root {
+  --op-accent-rgb: 240 243 247;
+  --op-mono: 'Roboto Mono', ui-monospace, monospace;
+  --op-blur: 17px;
+  --op-fog: 1;
+  --op-bg: #0a0a0a;
+  --op-s1: rgb(255 255 255 / .035);
+  --op-s2: rgb(255 255 255 / .055);
+  --op-s3: rgb(255 255 255 / .085);
+  --op-sunken:   rgb(0 0 0 / .28);
+  --op-sunken-2: rgb(0 0 0 / .44);
+  --op-glass:       blur(var(--op-blur)) saturate(135%);
+  --op-glass-heavy: blur(calc(var(--op-blur) * 1.65)) saturate(135%);
+  --op-edge-lit: rgb(255 255 255 / .10);
+  --op-line:   rgb(255 255 255 / .055);
+  --op-line-2: rgb(255 255 255 / .09);
+  --op-line-3: rgb(255 255 255 / .15);
+  --op-sheet: inset 0 1px 0 var(--op-edge-lit), inset 0 0 0 1px var(--op-line);
+  --op-hairline: inset 0 0 0 1px var(--op-line);
+  --op-text:   oklch(93.9% 0 0);
+  --op-text-2: oklch(73.3% 0 0);
+  --op-text-3: oklch(63% 0 0);
+  --op-text-4: oklch(42.3% 0 0);
+  --op-accent: rgb(var(--op-accent-rgb));
+  --op-wash-1: rgb(var(--op-accent-rgb) / .05);
+  --op-wash-2: rgb(var(--op-accent-rgb) / .09);
+  --op-ring:   rgb(var(--op-accent-rgb) / .55);
+  --op-select: rgb(var(--op-accent-rgb) / .16);
+  --op-deep:   rgb(0 0 0 / .38);
+  --op-deep-2: rgb(0 0 0 / .50);
+  --op-rim:    rgb(var(--op-accent-rgb) / .40);
+  --op-rim-2:  rgb(var(--op-accent-rgb) / .62);
+  --op-danger-rgb: 212 103 107;
+  --op-danger: rgb(var(--op-danger-rgb));
+  --op-danger-dim: oklch(47.5% .106 18);
+  --op-danger-wash: rgb(var(--op-danger-rgb) / .12);
+  --op-scrim: rgb(3 3 4 / .48);
+  --op-foot:  rgb(0 0 0 / .16);
+  --op-flota-base: 90%;
+  --op-flota: linear-gradient(var(--op-s2), var(--op-s2)), color-mix(in srgb, var(--op-bg) var(--op-flota-base), transparent);
+  --op-font: 'Inter', 'Inter Variable', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --op-fs-10: 10px; --op-fs-11: 11px; --op-fs-12: 12px; --op-fs-13: 13px; --op-fs-15: 15px; --op-fs-19: 19px;
+  --op-lh: 1.5;
+  --op-w-medium: 500; --op-w-semi: 600;
+  --op-track-tight: -.014em; --op-track-caps: .13em;
+  --op-1: 4px; --op-2: 8px; --op-3: 12px; --op-4: 16px; --op-5: 20px; --op-6: 24px;
+  --op-r-xs: 4px; --op-r-sm: 6px; --op-r-md: 8px; --op-r-lg: 12px; --op-r-xl: 16px; --op-r-pill: 999px;
+  --op-e1: 0 1px 2px rgb(0 0 0 / .30);
+  --op-e2: 0 2px 8px rgb(0 0 0 / .34), 0 12px 34px rgb(0 0 0 / .40);
+  --op-e3: 0 4px 12px rgb(0 0 0 / .38), 0 20px 48px rgb(0 0 0 / .46);
+  --op-e4: 0 8px 24px rgb(0 0 0 / .44), 0 32px 80px rgb(0 0 0 / .58);
+  --op-ease:      cubic-bezier(.16, 1, .3, 1);
+  --op-ease-soft: cubic-bezier(.33, 1, .68, 1);
+  --op-ease-both: cubic-bezier(.65, 0, .35, 1);
+  --op-ease-in:   cubic-bezier(.55, 0, 1, .45);
+  --op-t-1: 110ms; --op-t-2: 180ms; --op-t-3: 280ms; --op-t-4: 420ms;
+  --tr-color: color var(--op-t-1) var(--op-ease-soft), background-color var(--op-t-1) var(--op-ease-soft), box-shadow var(--op-t-1) var(--op-ease-soft);
+  --op-titlebar: 38px;
+  --op-statusbar: 26px;
+  --op-rail: 224px;
+  --op-panel: 224px;   /* el panel derecho: de entrada, el mismo ancho que el rail */
+  --op-fade: 28px;
+
+  /* Lo nuevo: el aire entre las hojas y el borde, y el radio de lo que flota. */
+  --op-gutter: 8px;
+  --op-sheet-r: 14px;
+}
+
+/* ══ Base ═════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: #050506; color: var(--op-text); font: var(--op-fs-13)/var(--op-lh) var(--op-font); -webkit-font-smoothing: antialiased; overflow: hidden; user-select: none; }
+button { font: inherit; color: inherit; }
+input { font: inherit; }
+::selection { background: var(--op-select); }
+:focus-visible { outline: 1.5px solid var(--op-ring); outline-offset: 2px; }
+.op-icon { width: 16px; height: 16px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+.op-mono { font-family: var(--op-mono); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background-color: transparent; border: 3px solid transparent; background-clip: padding-box; border-radius: 99px; }
+:hover::-webkit-scrollbar-thumb { background-color: rgb(255 255 255 / .10); }
+::-webkit-scrollbar-thumb:hover { background-color: rgb(255 255 255 / .2); }
+
+@property --op-fade-top    { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --op-fade-bottom { syntax: '<length>'; inherits: false; initial-value: 0px; }
+.op-scroll {
+  overflow-y: auto; overflow-x: hidden;
+  padding-top: var(--op-fade); padding-bottom: var(--op-fade);
+  --op-fade-top: var(--op-fade); --op-fade-bottom: var(--op-fade);
+  transition: --op-fade-top var(--op-t-3) var(--op-ease-soft), --op-fade-bottom var(--op-t-3) var(--op-ease-soft);
+  --op-sb: 10px;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 var(--op-fade-top), #000 calc(100% - var(--op-fade-bottom)), transparent 100%), linear-gradient(#000, #000);
+  mask-size: calc(100% - var(--op-sb)) 100%, var(--op-sb) 100%;
+  mask-position: left top, right top;
+  mask-repeat: no-repeat;
+}
+.op-scroll.is-top    { --op-fade-top: 0px; }
+.op-scroll.is-bottom { --op-fade-bottom: 0px; }
+.op-scroll.is-top.is-bottom { mask-image: none; }
+
+@keyframes op-fade-in   { from { opacity: 0 } to { opacity: 1 } }
+@keyframes op-fade-out  { from { opacity: 1 } to { opacity: 0 } }
+@keyframes op-rise-in   { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+@keyframes op-pop-in    { from { opacity: 0; transform: scale(.965) translateY(-4px) } to { opacity: 1; transform: none } }
+@keyframes op-pop-out   { from { opacity: 1; transform: none } to { opacity: 0; transform: scale(.98) translateY(-2px) } }
+@keyframes op-lift-in   { from { opacity: 0; transform: translateY(14px) scale(.985) } to { opacity: 1; transform: none } }
+@keyframes op-lift-out  { from { opacity: 1; transform: none } to { opacity: 0; transform: translateY(6px) scale(.99) } }
+@keyframes op-slide-in-r  { from { opacity: 0; transform: translateX(24px) } to { opacity: 1; transform: none } }
+@keyframes op-slide-out-r { from { opacity: 1; transform: none } to { opacity: 0; transform: translateX(16px) } }
+@keyframes op-breathe { 0%, 100% { opacity: .35; transform: scale(1) } 50% { opacity: 1; transform: scale(1.06) } }
+@keyframes op-toast-life { from { transform: scaleX(1) } to { transform: scaleX(0) } }
+
+/* ══ El escritorio de la maqueta ══════════════════════════════════════════ */
+.mq-desk {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 24px;
+  padding: 24px;
+  background: radial-gradient(60vw 50vh at 20% 10%, rgb(255 255 255 / .025), transparent 70%), #060607;
+}
+@media (max-width: 1000px) {
+  body { overflow: auto; }
+  .mq-desk { height: auto; grid-template-columns: 1fr; padding: 16px; }
+  .mq-desk .op-app { height: 720px; }
+}
+
+/* ══ El shell, con sus variantes ══════════════════════════════════════════
+   Clases en .op-app:
+     .is-flotante   el rail (y la vista, si va en hoja) flotan con aire
+     .is-hoja       la vista va en una hoja de vidrio propia
+     .sin-titlebar  no hay fila de arriba
+     .sin-statusbar no hay fila de abajo */
+.op-app {
+  position: relative; z-index: 0;
+  display: grid;
+  grid-template-rows: var(--op-titlebar) minmax(0, 1fr) var(--op-statusbar);
+  min-width: 0; height: 100%;
+  background: var(--op-bg);
+  border-radius: 8px; overflow: hidden;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / .06), 0 30px 80px rgb(0 0 0 / .7);
+  transition: grid-template-rows var(--op-t-3) var(--op-ease);
+}
+.op-app.sin-titlebar  { grid-template-rows: 0px minmax(0, 1fr) var(--op-statusbar); }
+.op-app.sin-statusbar { grid-template-rows: var(--op-titlebar) minmax(0, 1fr) 0px; }
+.op-app.sin-titlebar.sin-statusbar { grid-template-rows: 0px minmax(0, 1fr) 0px; }
+
+.op-fog {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.038'/%3E%3C/svg%3E"),
+    linear-gradient(rgb(8 8 9 / .3), rgb(8 8 9 / .3)),
+    radial-gradient(46vw 46vw at 10% 0%, rgb(255 255 255 / calc(.062 * var(--op-fog))), transparent 70%),
+    radial-gradient(42vw 42vw at 94% 16%, rgb(255 255 255 / calc(.05 * var(--op-fog))), transparent 70%),
+    radial-gradient(40vw 40vw at 42% 110%, rgb(255 255 255 / calc(.042 * var(--op-fog))), transparent 70%);
+}
+
+/* ── Titlebar ───────────────────────────────────────────────────────────────
+   Pegada: una hoja de vidrio de lado a lado (la de hoy). Flotante: aire sobre
+   la niebla, sin relleno ni línea. Sin titlebar, la fila mide 0 y lo que
+   tenía se muda: la marca al rail, los controles de ventana a la esquina. */
+.op-titlebar {
+  position: relative; z-index: 20;
+  display: flex; align-items: center; gap: var(--op-3);
+  padding-left: var(--op-4);
+  min-height: 0; overflow: hidden;
+  background: var(--op-s1);
+  backdrop-filter: var(--op-glass-heavy);
+  box-shadow: inset 0 1px 0 var(--op-edge-lit), inset 0 -1px 0 var(--op-line);
+  transition: opacity var(--op-t-2) var(--op-ease-soft), padding var(--op-t-3) var(--op-ease);
+}
+.op-app.is-flotante > .op-titlebar { background: transparent; backdrop-filter: none; box-shadow: none; padding-left: calc(var(--op-gutter) + var(--op-3)); }
+.op-app.sin-titlebar > .op-titlebar { opacity: 0; pointer-events: none; }
+.op-brand { display: flex; align-items: center; gap: var(--op-2); color: var(--op-text-2); white-space: nowrap; }
+.op-brand__mark { width: 18px; height: 18px; color: var(--op-accent); }
+.op-brand__mark .op-brand__trail { opacity: .34; }
+.op-brand__name { font-size: var(--op-fs-11); font-weight: var(--op-w-semi); letter-spacing: var(--op-track-caps); text-transform: uppercase; }
+.op-titlebar__context { position: absolute; left: 50%; transform: translateX(-50%); font-size: var(--op-fs-11); color: var(--op-text-3); white-space: nowrap; transition: opacity var(--op-t-2) var(--op-ease-soft); }
+.op-app.sin-contexto .op-titlebar__context { opacity: 0; }
+
+/* Los controles de ventana viven aparte de la titlebar: así, sin ella, pasan
+   a flotar en la esquina de arriba a la derecha sin rehacerse. */
+.op-wincontrols {
+  position: absolute; z-index: 30; top: 0; right: 0;
+  display: flex; height: var(--op-titlebar);
+  transition: top var(--op-t-3) var(--op-ease), right var(--op-t-3) var(--op-ease), height var(--op-t-3) var(--op-ease);
+}
+.op-app.sin-titlebar .op-wincontrols { height: 34px; }
+.op-app.sin-titlebar.is-flotante .op-wincontrols { top: calc(var(--op-gutter) + 4px); right: calc(var(--op-gutter) + 4px); }
+.op-wincontrol {
+  position: relative; z-index: 0; width: 46px; height: 100%;
+  display: grid; place-items: center; border: 0; background: transparent;
+  color: var(--op-text-3); cursor: default; transition: var(--tr-color);
+}
+.op-app.sin-titlebar .op-wincontrol { width: 40px; }
+.op-wincontrol::before {
+  content: ''; position: absolute; z-index: -1; left: 5px; right: 5px;
+  top: calc((100% - 28px) / 2); height: 28px; border-radius: var(--op-r-sm);
+  transition: background var(--op-t-2) var(--op-ease-soft);
+}
+.op-wincontrol:hover { color: var(--op-text); }
+.op-wincontrol:hover::before { background: var(--op-wash-1); }
+.op-wincontrol--close:hover { color: #fff; }
+.op-wincontrol--close:hover::before { background: var(--op-danger-dim); }
+.op-wincontrol .op-icon { width: 11px; height: 11px; stroke-width: 1.2; }
+
+/* ── Cuerpo ─────────────────────────────────────────────────────────────── */
+/* Cinco pistas: rail · aire · vista · aire · panel. El aire es una pista y no
+   un gap: con el panel guardado, su pista y la de su aire miden 0 y no queda
+   un hueco de más a la derecha. Así el panel entra y sale haciendo viajar las
+   pistas (grid-template-columns se interpola) sin que la vista salte. */
+.op-body {
+  --aire: 0px;
+  --aire-der: 0px;
+  --panel-w: 0px;
+  display: grid;
+  grid-template-columns: var(--op-rail) var(--aire) minmax(0, 1fr) var(--aire-der) var(--panel-w);
+  /* La segunda fila es la del compositor: mide lo que mida él (0 guardado). El
+     rail y el panel ocupan las dos filas; la vista y el compositor, la del
+     medio cada uno. */
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  transition: grid-template-columns var(--op-t-3) var(--op-ease), padding var(--op-t-3) var(--op-ease);
+}
+.op-body > .op-rail  { grid-column: 1; grid-row: 1 / -1; }
+.op-body > .op-main  { grid-column: 3; grid-row: 1; }
+.op-body > .op-panel { grid-column: 5; grid-row: 1 / -1; }
+.op-body > .op-composer { grid-column: 3; grid-row: 2; }
+.op-app.is-flotante .op-body { --aire: var(--op-gutter); padding: 0 var(--op-gutter) var(--op-gutter); }
+.op-app.con-panel .op-body { --panel-w: var(--op-panel); }
+.op-app.is-flotante.con-panel .op-body { --aire-der: var(--op-gutter); }
+/* Sin titlebar, las hojas también dejan aire arriba. */
+.op-app.is-flotante.sin-titlebar .op-body { padding-top: var(--op-gutter); }
+/* Con statusbar, el aire de abajo lo pone ella: la fila es el límite. */
+.op-app.is-flotante:not(.sin-statusbar) .op-body { padding-bottom: 0; }
+
+/* ── El rail ───────────────────────────────────────────────────────────────
+   Pegado: la hoja de borde a borde con su hairline a la derecha (la de hoy).
+   Flotante: una hoja con radio, separada de los bordes. */
+.op-rail {
+  display: flex; flex-direction: column; min-height: 0;
+  background: var(--op-s1);
+  backdrop-filter: var(--op-glass);
+  box-shadow: inset -1px 0 0 var(--op-line);
+  overflow: hidden;
+  transition: border-radius var(--op-t-3) var(--op-ease), box-shadow var(--op-t-3) var(--op-ease-soft);
+}
+.op-app.is-flotante .op-rail { border-radius: var(--op-sheet-r); box-shadow: var(--op-sheet), var(--op-e3); }
+
+/* La marca baja al rail cuando no hay titlebar. Se pliega con grid-rows. */
+.op-rail__brand { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--op-t-3) var(--op-ease); }
+.op-rail__brand > div { overflow: hidden; min-height: 0; }
+.op-rail__brand .op-brand { padding: var(--op-4) var(--op-4) var(--op-1); opacity: 0; transition: opacity var(--op-t-2) var(--op-ease-soft); }
+.op-app.sin-titlebar .op-rail__brand { grid-template-rows: 1fr; }
+.op-app.sin-titlebar .op-rail__brand .op-brand { opacity: 1; transition-delay: 80ms; }
+
+.op-rail__top { padding: var(--op-3) var(--op-3) var(--op-2); }
+.op-rail__nav { flex: 1 1 auto; min-height: 0; --op-fade: 12px; padding: var(--op-fade) var(--op-3) var(--op-1); --op-fade-bottom: 0px; }
+.op-rail__group { margin-bottom: var(--op-1); }
+.op-rail__group-label { padding: var(--op-3) var(--op-2) var(--op-1); font-size: var(--op-fs-10); font-weight: var(--op-w-semi); letter-spacing: var(--op-track-caps); text-transform: uppercase; color: var(--op-text-3); }
+.op-navitem {
+  position: relative; display: flex; align-items: center; gap: var(--op-3);
+  width: 100%; height: 32px; padding: 0 var(--op-2); border: 0;
+  border-radius: var(--op-r-sm); background: transparent; color: var(--op-text-2);
+  font-size: var(--op-fs-13); text-align: left; cursor: default; transition: var(--tr-color);
+}
+.op-navitem .op-icon { color: var(--op-text-3); transition: color var(--op-t-1) var(--op-ease-soft); }
+.op-navitem:hover { background: var(--op-wash-1); color: var(--op-text); }
+.op-navitem.is-active { background: var(--op-wash-2); color: var(--op-text); font-weight: var(--op-w-medium); box-shadow: inset 0 1px 0 rgb(255 255 255 / .06); }
+.op-navitem.is-active .op-icon { color: var(--op-accent); }
+.op-navitem::before {
+  content: ''; position: absolute; left: -12px; top: 50%; width: 2px; height: 16px;
+  border-radius: var(--op-r-pill); background: var(--op-accent);
+  transform: translateY(-50%) scaleY(0); transition: transform var(--op-t-3) var(--op-ease);
+}
+.op-navitem.is-active::before { transform: translateY(-50%) scaleY(1); }
+.op-navitem__count { margin-left: auto; font-size: var(--op-fs-11); font-variant-numeric: tabular-nums; color: var(--op-text-3); }
+.op-rail__foot {
+  padding: var(--op-3); box-shadow: inset 0 1px 0 var(--op-line);
+  font-size: var(--op-fs-11); color: var(--op-text-3); font-family: var(--op-mono);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ── El panel derecho: el espejo del rail ──────────────────────────────────
+   La misma hoja que el rail, del otro lado: pegado lleva su hairline a la
+   IZQUIERDA; flotante, el radio y la sombra. Adentro va el inspector del ítem
+   elegido. El contenido conserva su ancho mientras la pista se cierra: sin
+   esto el texto se reacomodaría en cada cuadro y temblaría. */
+.op-panel {
+  display: flex; flex-direction: column; min-height: 0; min-width: 0;
+  background: var(--op-s1);
+  backdrop-filter: var(--op-glass);
+  box-shadow: inset 1px 0 0 var(--op-line);
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--op-t-2) var(--op-ease-soft), border-radius var(--op-t-3) var(--op-ease), box-shadow var(--op-t-3) var(--op-ease-soft);
+}
+.op-panel > * { min-width: var(--op-panel); }
+.op-app.con-panel .op-panel { opacity: 1; transition-delay: 60ms, 0s, 0s; }
+.op-app.is-flotante .op-panel { border-radius: var(--op-sheet-r); box-shadow: var(--op-sheet), var(--op-e3); }
+/* El título del panel queda alineado con el de la vista: los dos arrancan en
+   la misma fila del cuerpo, así que basta con que el CENTRO de su primera
+   línea caiga a la misma altura. Vista: 20 + 23/2 (19 px × 1,2). Panel:
+   22 + 19/2 (15 px × 1,25). Los dos, a 31,5 px. */
+.op-panel__head { display: flex; align-items: center; gap: var(--op-3); padding: 22px var(--op-4) var(--op-3); transition: padding var(--op-t-3) var(--op-ease); }
+/* Sin titlebar, los controles de ventana viven arriba del panel y le piden su
+   fila; la vista baja lo mismo, así los títulos siguen alineados (57,5 px). */
+.op-app.sin-titlebar.con-panel .op-panel__head { padding-top: 48px; }
+.op-app.sin-titlebar.con-panel .op-viewhead { padding-top: 46px; }
+.op-panel__title { font-size: var(--op-fs-15); font-weight: var(--op-w-semi); letter-spacing: var(--op-track-tight); line-height: 1.25; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.op-panel__sub { font-size: var(--op-fs-11); color: var(--op-text-3); font-family: var(--op-mono); }
+.op-panel__body { flex: 1 1 auto; min-height: 0; padding: var(--op-1) var(--op-4) var(--op-4); --op-fade: 16px; --op-fade-bottom: 0px; }
+.op-panel__body .op-section { margin-bottom: var(--op-5); }
+.op-panel__body .op-kv { grid-template-columns: 74px 1fr; }
+.op-panel__note { font-size: var(--op-fs-12); color: var(--op-text-2); line-height: 1.6; user-select: text; }
+.op-panel__foot { display: flex; gap: var(--op-2); padding: var(--op-3) var(--op-4); box-shadow: inset 0 1px 0 var(--op-line); }
+.op-panel__foot .op-btn { flex: 1 1 0; }
+.op-panel__swap { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; animation: op-fade-in var(--op-t-2) var(--op-ease) both; }
+.op-status { display: inline-flex; align-items: center; gap: 6px; font-size: var(--op-fs-12); color: var(--op-text-2); }
+
+/* El ítem elegido en la lista (el que muestra el panel). */
+.op-listitem.is-selected { background: var(--op-wash-2); }
+.op-listitem.is-selected::before {
+  content: ''; position: absolute; left: 0; top: 50%; width: 2px; height: 60%;
+  border-radius: var(--op-r-pill); background: var(--op-accent); transform: translateY(-50%);
+  animation: op-fade-in var(--op-t-2) var(--op-ease) both;
+}
+
+/* ── El compositor: el panel de abajo, para escribir ────────────────────────
+   Como el de NeonCode o el de un chat: un campo que crece con lo que escribís,
+   el botón de enviar adentro y un pie con lo que cambia CÓMO se manda.
+   Flotante: otra hoja de vidrio, con el mismo radio y el mismo aire. Pegado:
+   una franja con su línea arriba, y el campo es un pozo.
+   Entra y sale plegándose (grid-template-rows 0fr ↔ 1fr): se pliega lo de
+   adentro, no la hoja (el blur no se anima). */
+.op-composer { display: grid; grid-template-rows: 0fr; min-width: 0; transition: grid-template-rows var(--op-t-3) var(--op-ease); }
+.op-app.con-composer .op-composer { grid-template-rows: 1fr; }
+/* __in se pliega a 0 (sin relleno propio: un padding no se comprime y dejaba
+   8 px de compositor guardado); el aire y la franja van en __pad, adentro. */
+.op-composer__in { min-height: 0; overflow: hidden; }
+.op-composer__pad { transition: padding var(--op-t-3) var(--op-ease); }
+.op-app.is-flotante .op-composer__pad { padding: var(--op-gutter) 0 0; }
+.op-composer__box {
+  display: flex; flex-direction: column;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity var(--op-t-2) var(--op-ease-soft), transform var(--op-t-3) var(--op-ease),
+              box-shadow var(--op-t-2) var(--op-ease-soft), background-color var(--op-t-2) var(--op-ease-soft);
+}
+.op-app.con-composer .op-composer__box { opacity: 1; transform: none; transition-delay: 60ms, 60ms, 0s, 0s; }
+/* Flotante: la hoja misma es el campo. Con foco se enciende el canto, no el
+   relleno: la luz no rellena, talla. */
+.op-app.is-flotante .op-composer__box {
+  border-radius: var(--op-sheet-r);
+  background: var(--op-s1);
+  backdrop-filter: var(--op-glass);
+  box-shadow: var(--op-sheet), var(--op-e3);
+}
+.op-app.is-flotante .op-composer__box:focus-within { box-shadow: inset 0 1px 0 var(--op-edge-lit), inset 0 0 0 1px var(--op-rim), var(--op-e3); }
+/* Pegado: la franja de borde a borde de la columna, y adentro un pozo. */
+.op-app:not(.is-flotante) .op-composer__pad { background: var(--op-s1); backdrop-filter: var(--op-glass); box-shadow: inset 0 1px 0 var(--op-line); padding: var(--op-3) var(--op-4); }
+.op-app:not(.is-flotante) .op-composer__box { border-radius: var(--op-r-lg); background: var(--op-sunken); box-shadow: inset 0 0 0 1px var(--op-line); }
+.op-app:not(.is-flotante) .op-composer__box:focus-within { background: var(--op-sunken-2); box-shadow: inset 0 0 0 1px var(--op-rim); }
+/* Como NeonCode: con una línea, el texto queda centrado a la altura del botón
+   (campo de 36 = 8 + 19,5 + 8, botón de 34 con 1 px abajo); al crecer, el
+   botón se queda abajo, al lado de la última línea. */
+.op-composer__row { display: flex; align-items: flex-end; gap: var(--op-2); padding: 6px 6px 6px 14px; }
+.op-composer__input {
+  flex: 1 1 auto; min-width: 0; height: 36px; max-height: 168px;
+  padding: 8px 0; border: 0; outline: none; resize: none; overflow-y: hidden;
+  background: transparent; color: var(--op-text);
+  font: var(--op-fs-13)/1.5 var(--op-font);
+  user-select: text; cursor: text;
+  transition: height var(--op-t-2) var(--op-ease);
+}
+.op-composer__input::placeholder { color: var(--op-text-4); }
+.op-composer__input:focus-visible { outline: none; }
+/* Enviar: obsidiana con el canto vivo, como todo primario. Apagado sin texto. */
+.op-composer__send {
+  display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto; margin-bottom: 1px;
+  border: 0; border-radius: 50%; cursor: default;
+  background: var(--op-deep); color: var(--op-text);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .16), inset 0 0 0 1px var(--op-rim), var(--op-e1);
+  transition: var(--tr-color), opacity var(--op-t-2) var(--op-ease-soft), transform var(--op-t-1) var(--op-ease-soft);
+}
+.op-composer__send:hover { background: var(--op-deep-2); box-shadow: inset 0 1px 0 rgb(255 255 255 / .22), inset 0 0 0 1px var(--op-rim-2), 0 0 14px rgb(var(--op-accent-rgb) / .08); }
+.op-composer__send:active { transform: scale(.92); }
+.op-composer__send:disabled { background: transparent; color: var(--op-text-4); box-shadow: inset 0 0 0 1px var(--op-line); pointer-events: none; }
+.op-composer__send .op-icon { width: 17px; height: 17px; stroke-width: 1.7; }
+/* Relleno, como NeonCode: el acento pleno con su resplandor. Rompe la ley de
+   Opal (la luz no rellena, talla): está para comparar en la maqueta. */
+.op-app.send-relleno .op-composer__send { background: var(--op-accent); color: var(--op-bg); box-shadow: 0 0 14px rgb(var(--op-accent-rgb) / .35); }
+.op-app.send-relleno .op-composer__send:hover { background: var(--op-accent); filter: brightness(1.1); box-shadow: 0 0 22px rgb(var(--op-accent-rgb) / .5); }
+.op-app.send-relleno .op-composer__send:disabled { background: var(--op-s3); color: var(--op-text-4); box-shadow: none; filter: none; }
+.op-composer__foot { display: flex; align-items: center; gap: var(--op-1); padding: 6px var(--op-1) 0; opacity: 0; transition: opacity var(--op-t-2) var(--op-ease-soft); }
+.op-app.con-composer .op-composer__foot { opacity: 1; transition-delay: 90ms; }
+.op-composer__hint { font-size: var(--op-fs-11); color: var(--op-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: var(--op-1); }
+.op-chip {
+  display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 var(--op-2);
+  border: 0; border-radius: var(--op-r-sm); background: transparent; color: var(--op-text-2);
+  font-size: var(--op-fs-11); font-weight: var(--op-w-medium); cursor: default; transition: var(--tr-color);
+}
+.op-chip:hover, .op-chip.is-open { background: var(--op-wash-1); color: var(--op-text); }
+.op-chip .op-icon { width: 12px; height: 12px; color: var(--op-text-3); }
+.op-chip__label { display: inline-block; animation: op-fade-in var(--op-t-2) var(--op-ease) both; }
+
+/* ── La terminal (falsa) ───────────────────────────────────────────────────
+   Un pozo dentro de la hoja de la vista: el texto en Roboto Mono, y el cursor
+   de bloque es un punto de luz (el acento vive en puntos), con su resplandor.
+   El campo de verdad es un textarea invisible: así andan pegar, Ctrl+Retroceso,
+   el IME y las flechas sin escribir un editor de línea. */
+.op-term-wrap { flex: 1 1 auto; min-height: 0; display: flex; padding: var(--op-2) var(--op-6) var(--op-6); }
+.op-term {
+  position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  padding: 14px 16px; border-radius: var(--op-r-lg);
+  background: var(--op-sunken); box-shadow: inset 0 0 0 1px var(--op-line), inset 0 1px 6px rgb(0 0 0 / .25);
+  font-family: var(--op-mono); font-size: 12.5px; line-height: 1.65; color: var(--op-text-2);
+  user-select: text; cursor: text;
+  transition: box-shadow var(--op-t-2) var(--op-ease-soft), background var(--op-t-2) var(--op-ease-soft);
+}
+.op-term.is-focus { background: var(--op-sunken-2); }
+.op-term::-webkit-scrollbar-track { margin-block: var(--op-r-lg); }
+/* pre-wrap va en la línea, no en el pozo: si no, los saltos del HTML entre
+   los hijos se vuelven renglones vacíos. */
+.op-term__line { min-height: 1.65em; white-space: pre-wrap; word-break: break-all; }
+.op-term__line.is-in { animation: op-fade-in var(--op-t-2) var(--op-ease) both; }
+.op-term__ps { color: var(--op-text-3); }
+.op-term__cwd { color: var(--op-text); }
+.op-term__cmd { color: var(--op-text); }
+.op-term__dim { color: var(--op-text-3); }
+.op-term__hi { color: var(--op-accent); }
+.op-term__err { color: var(--op-danger); }
+.op-term__input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; resize: none; border: 0; padding: 0; pointer-events: none; }
+
+/* El cursor de bloque. Con foco: luz plena con resplandor, y respira (parpadeo
+   suave, no un corte seco); mientras se escribe se queda quieto y prendido.
+   Sin foco: solo el contorno, apagado, como cualquier terminal. */
+.op-term__cur {
+  display: inline-block; position: relative; min-width: 1ch; height: 1.3em; vertical-align: -0.24em;
+  border-radius: 1.5px; color: var(--op-bg);
+  background: var(--op-accent);
+  box-shadow: 0 0 6px rgb(var(--op-accent-rgb) / .75), 0 0 18px rgb(var(--op-accent-rgb) / .35);
+  animation: op-term-blink 1.1s var(--op-ease-soft) infinite;
+}
+.op-term__cur > span { position: relative; top: -0.06em; }
+.op-term.is-typing .op-term__cur { animation: none; }
+.op-term:not(.is-focus) .op-term__cur { animation: none; background: transparent; color: inherit; box-shadow: inset 0 0 0 1px rgb(var(--op-accent-rgb) / .45); }
+.op-term.is-busy .op-term__cur { opacity: 0; animation: none; }
+@keyframes op-term-blink { 0%, 48% { opacity: 1; } 58%, 90% { opacity: .08; } 100% { opacity: 1; } }
+
+/* ── La vista ───────────────────────────────────────────────────────────── */
+.op-main {
+  position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0;
+  transition: background-color var(--op-t-3) var(--op-ease-soft), box-shadow var(--op-t-3) var(--op-ease-soft), border-radius var(--op-t-3) var(--op-ease);
+}
+.op-app.is-hoja .op-main { background: rgb(255 255 255 / .022); backdrop-filter: var(--op-glass); box-shadow: var(--op-sheet), var(--op-e3); overflow: hidden; }
+.op-app.is-flotante.is-hoja .op-main { border-radius: var(--op-sheet-r); }
+.op-app.is-hoja .op-main > .op-view > .op-scroll::-webkit-scrollbar-track { margin-block: var(--op-sheet-r); }
+.op-view { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; animation: op-rise-in var(--op-t-4) var(--op-ease) both; }
+.op-viewhead { display: flex; align-items: center; gap: var(--op-3); padding: var(--op-5) var(--op-6) var(--op-2); flex: 0 0 auto; transition: padding var(--op-t-3) var(--op-ease); }
+/* Sin titlebar, las acciones del encabezado se corren: arriba a la derecha
+   están los controles de ventana. */
+.op-app.sin-titlebar:not(.con-panel) .op-viewhead { padding-right: 150px; }
+.op-viewhead__title { font-size: var(--op-fs-19); font-weight: var(--op-w-semi); letter-spacing: var(--op-track-tight); line-height: 1.2; }
+.op-viewhead__sub { font-size: var(--op-fs-12); color: var(--op-text-3); margin-top: 2px; }
+.op-viewhead__actions { margin-left: auto; display: flex; gap: var(--op-2); }
+.op-view > .op-scroll { flex: 1 1 auto; min-height: 0; padding-inline: var(--op-6); }
+
+/* ── Statusbar ──────────────────────────────────────────────────────────────
+   Pegada: hoja de lado a lado con su línea arriba (la de hoy). Flotante: aire
+   sobre la niebla, alineada con el contenido de las hojas. */
+.op-statusbar {
+  display: flex; align-items: center; gap: var(--op-4); padding: 0 var(--op-4);
+  min-height: 0; overflow: hidden;
+  background: var(--op-s1); backdrop-filter: var(--op-glass); box-shadow: inset 0 1px 0 var(--op-line);
+  font-size: var(--op-fs-11); color: var(--op-text-3);
+  transition: opacity var(--op-t-2) var(--op-ease-soft), padding var(--op-t-3) var(--op-ease);
+}
+.op-app.is-flotante > .op-statusbar { background: transparent; backdrop-filter: none; box-shadow: none; padding: 0 calc(var(--op-gutter) + var(--op-3)); }
+.op-app.sin-statusbar > .op-statusbar { opacity: 0; pointer-events: none; }
+.op-statusbar__item { display: flex; align-items: center; gap: var(--op-2); white-space: nowrap; }
+.op-statusbar__item .op-icon { width: 12px; height: 12px; }
+.op-statusbar__value { color: var(--op-text-2); font-variant-numeric: tabular-nums; }
+.op-spacer { flex: 1 1 auto; }
+
+/* ══ Controles ════════════════════════════════════════════════════════════ */
+.op-btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--op-2);
+  height: 30px; padding: 0 var(--op-3); border: 0; border-radius: var(--op-r-sm);
+  background: transparent; color: var(--op-text-2); font-size: var(--op-fs-12); font-weight: var(--op-w-medium);
+  white-space: nowrap; cursor: default; overflow: hidden;
+  transition: var(--tr-color), transform var(--op-t-1) var(--op-ease-soft);
+}
+.op-btn .op-icon { width: 14px; height: 14px; }
+.op-btn:active { transform: scale(.975); }
+.op-btn--primary { background: var(--op-deep); color: var(--op-text); font-weight: var(--op-w-semi); box-shadow: inset 0 1px 0 rgb(255 255 255 / .16), inset 0 0 0 1px var(--op-rim), var(--op-e2); }
+.op-btn--primary:hover { background: var(--op-deep-2); box-shadow: inset 0 1px 0 rgb(255 255 255 / .22), inset 0 0 0 1px var(--op-rim-2), 0 0 16px rgb(var(--op-accent-rgb) / .08), var(--op-e2); }
+.op-btn--secondary { background: var(--op-s2); color: var(--op-text); box-shadow: var(--op-sheet), var(--op-e1); }
+.op-btn--secondary:hover { background: var(--op-s3); box-shadow: inset 0 1px 0 var(--op-edge-lit), inset 0 0 0 1px var(--op-line-2), var(--op-e2); }
+.op-btn--ghost:hover { background: var(--op-wash-1); color: var(--op-text); }
+.op-btn--danger { color: var(--op-danger); }
+.op-btn--danger:hover { background: var(--op-danger-wash); }
+.op-btn--sm { height: 26px; padding: 0 var(--op-2); font-size: var(--op-fs-11); }
+.op-btn--sm .op-icon { width: 12px; height: 12px; }
+.op-btn--block { width: 100%; }
+.op-iconbtn {
+  display: inline-grid; place-items: center; width: 28px; height: 28px; flex: 0 0 auto;
+  border: 0; border-radius: var(--op-r-sm); background: transparent; color: var(--op-text-3);
+  cursor: default; transition: var(--tr-color), transform var(--op-t-1) var(--op-ease-soft), opacity var(--op-t-1) var(--op-ease-soft);
+}
+.op-iconbtn:hover { background: var(--op-wash-1); color: var(--op-text); }
+.op-iconbtn:active { transform: scale(.92); background: var(--op-wash-2); }
+.op-iconbtn--sm { width: 22px; height: 22px; }
+.op-iconbtn--sm .op-icon { width: 13px; height: 13px; }
+.op-input {
+  width: 100%; height: 30px; padding: 0 var(--op-3); border: 0; border-radius: var(--op-r-sm);
+  background: var(--op-sunken); color: var(--op-text); font-size: var(--op-fs-13);
+  box-shadow: inset 0 0 0 1px var(--op-line); user-select: text; cursor: text;
+  transition: box-shadow var(--op-t-2) var(--op-ease-soft), background-color var(--op-t-2) var(--op-ease-soft);
+}
+.op-input::placeholder { color: var(--op-text-4); }
+.op-input:hover { box-shadow: inset 0 0 0 1px var(--op-line-2); }
+.op-input:focus { outline: none; background: var(--op-sunken-2); box-shadow: inset 0 0 0 1px var(--op-line-3), 0 0 0 3px var(--op-wash-1); }
+.op-field { display: flex; flex-direction: column; gap: var(--op-2); }
+.op-field__label { font-size: var(--op-fs-11); font-weight: var(--op-w-medium); color: var(--op-text-3); }
+.op-switch {
+  position: relative; width: 30px; height: 17px; flex: 0 0 auto; border: 0; border-radius: var(--op-r-pill);
+  background: var(--op-s3); cursor: default; box-shadow: var(--op-hairline);
+  transition: background-color var(--op-t-2) var(--op-ease-soft), box-shadow var(--op-t-2) var(--op-ease-soft);
+}
+.op-switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 11px; height: 11px; border-radius: 50%;
+  background: var(--op-text-3); transition: transform var(--op-t-2) var(--op-ease), background-color var(--op-t-2) var(--op-ease-soft);
+}
+.op-switch:hover::after { background: var(--op-text-2); }
+.op-switch.is-on { background: var(--op-deep); box-shadow: inset 0 1px 0 rgb(255 255 255 / .10), inset 0 0 0 1px var(--op-rim); }
+.op-switch.is-on::after { transform: translateX(13px); background: var(--op-text); }
+.op-segmented {
+  position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  padding: 2px; border-radius: var(--op-r-sm); background: var(--op-sunken); box-shadow: var(--op-hairline);
+}
+.op-segmented::before {
+  content: ''; position: absolute; top: 2px; left: 2px; width: var(--seg-w, 0px); height: calc(100% - 4px);
+  border-radius: var(--op-r-xs); background: var(--op-s3); box-shadow: inset 0 1px 0 rgb(255 255 255 / .07), var(--op-e1);
+  transform: translateX(calc(var(--seg, 0) * var(--seg-w, 0px)));
+  transition: transform var(--op-t-3) var(--op-ease), width var(--op-t-3) var(--op-ease);
+}
+.op-segmented__opt {
+  position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: var(--op-1);
+  height: 24px; padding: 0 var(--op-3); border: 0; background: transparent; color: var(--op-text-3);
+  font-size: var(--op-fs-11); font-weight: var(--op-w-medium); white-space: nowrap; cursor: default;
+  transition: color var(--op-t-2) var(--op-ease-soft);
+}
+.op-segmented__opt:hover { color: var(--op-text-2); }
+.op-segmented__opt.is-active { color: var(--op-text); }
+.op-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 16px; margin: 0; background: transparent; cursor: default; }
+.op-slider::-webkit-slider-runnable-track { height: 3px; border-radius: var(--op-r-pill); background: linear-gradient(to right, var(--op-accent) 0 var(--op-pct, 50%), var(--op-s3) var(--op-pct, 50%) 100%); }
+.op-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 11px; margin-top: -4px; border-radius: 50%; background: var(--op-text); box-shadow: 0 0 0 1px var(--op-rim-2), var(--op-e1); transition: transform var(--op-t-1) var(--op-ease-soft); }
+.op-slider:hover::-webkit-slider-thumb { transform: scale(1.25); }
+.op-slider:focus-visible { outline: none; }
+.op-slider:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 2px var(--op-bg), 0 0 0 3.5px var(--op-ring); }
+
+/* ══ Superficies ══════════════════════════════════════════════════════════ */
+.op-card { background: var(--op-s2); border-radius: var(--op-r-lg); box-shadow: var(--op-sheet), var(--op-e2); }
+.op-card__body { padding: var(--op-4); }
+.op-section { margin-bottom: var(--op-6); }
+.op-section__head { display: flex; align-items: center; gap: var(--op-2); margin-bottom: var(--op-3); }
+.op-section__title { font-size: var(--op-fs-10); font-weight: var(--op-w-semi); letter-spacing: var(--op-track-caps); text-transform: uppercase; color: var(--op-text-3); }
+.op-section__head .op-btn { margin-left: auto; }
+.op-label { font-size: var(--op-fs-13); color: var(--op-text); }
+.op-meta { font-size: var(--op-fs-12); color: var(--op-text-3); line-height: 1.55; }
+.op-row { display: flex; align-items: center; }
+.op-col { display: flex; flex-direction: column; }
+.op-stat { display: flex; flex-direction: column; gap: 3px; }
+.op-stat__value { font-size: var(--op-fs-19); font-weight: var(--op-w-semi); letter-spacing: var(--op-track-tight); font-variant-numeric: tabular-nums; }
+.op-stat__label { font-size: var(--op-fs-10); font-weight: var(--op-w-semi); letter-spacing: var(--op-track-caps); text-transform: uppercase; color: var(--op-text-3); }
+.op-kv { display: grid; grid-template-columns: 92px 1fr; gap: var(--op-2) var(--op-3); align-items: baseline; font-size: var(--op-fs-12); }
+.op-kv__k { color: var(--op-text-3); }
+.op-kv__v { color: var(--op-text-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; user-select: text; }
+.op-list { display: flex; flex-direction: column; gap: 2px; }
+.op-listitem {
+  position: relative; display: flex; align-items: center; gap: var(--op-3); min-height: 44px;
+  padding: var(--op-2) var(--op-3); border-radius: var(--op-r-md); transition: var(--tr-color);
+}
+.op-listitem:hover { background: var(--op-wash-1); }
+.op-listitem__main { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+.op-listitem__title { font-size: var(--op-fs-13); color: var(--op-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.op-listitem__sub { font-size: var(--op-fs-11); color: var(--op-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.op-rowactions { opacity: 0; transition: opacity var(--op-t-1) var(--op-ease-soft); }
+.op-listitem:hover .op-rowactions, .op-rowactions.is-open { opacity: 1; }
+.op-mark { position: relative; display: grid; place-items: center; width: 14px; height: 14px; flex: 0 0 auto; }
+.op-mark__core { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.op-mark__halo { position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 0 0 1px currentColor; opacity: 0; }
+.op-mark[data-state='idle'] { color: var(--op-text-4); }
+.op-mark[data-state='idle'] .op-mark__core, .op-mark[data-state='waiting'] .op-mark__core { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
+.op-mark[data-state='running'] { color: var(--op-accent); }
+.op-mark[data-state='running'] .op-mark__halo { opacity: 1; animation: op-breathe 2.2s var(--op-ease-both) infinite; }
+.op-mark[data-state='waiting'] { color: var(--op-text-2); }
+.op-mark[data-state='done'] { color: var(--op-text-3); }
+.op-mark[data-state='failed'] { color: var(--op-danger); }
+
+/* ══ Overlays (los de Opal de hoy: el tono de las tarjetas, de a uno) ═════ */
+#op-layer { position: fixed; inset: 0; z-index: 100; pointer-events: none; }
+#op-layer > * { pointer-events: auto; }
+.op-tooltip {
+  position: fixed; max-width: 280px; padding: 5px var(--op-2); border-radius: var(--op-r-md);
+  background: var(--op-s3); backdrop-filter: var(--op-glass); color: var(--op-text);
+  font-size: var(--op-fs-11); line-height: 1.45; text-align: center;
+  box-shadow: var(--op-sheet), var(--op-e3); animation: op-pop-in var(--op-t-2) var(--op-ease) both;
+  pointer-events: none !important;
+}
+.op-tooltip[data-state='closing'] { animation: op-pop-out var(--op-t-1) var(--op-ease-in) both; }
+.op-menu {
+  position: fixed; min-width: 190px; padding: var(--op-1); border-radius: var(--op-r-lg);
+  background: var(--op-flota); backdrop-filter: var(--op-glass-heavy); box-shadow: var(--op-sheet), var(--op-e4);
+  animation: op-fade-in var(--op-t-2) var(--op-ease) both;
+}
+.op-menu[data-state='closing'] { animation: op-fade-out var(--op-t-1) var(--op-ease-in) both; }
+.op-menuitem {
+  display: flex; align-items: center; gap: var(--op-3); width: 100%; height: 28px; padding: 0 var(--op-2);
+  border: 0; border-radius: var(--op-r-sm); background: transparent; color: var(--op-text-2);
+  font-size: var(--op-fs-12); text-align: left; cursor: default; transition: var(--tr-color);
+}
+.op-menuitem .op-icon { width: 14px; height: 14px; color: var(--op-text-3); }
+.op-menuitem:hover { background: var(--op-wash-2); color: var(--op-text); }
+.op-menuitem--danger, .op-menuitem--danger .op-icon { color: var(--op-danger) !important; }
+.op-menuitem--danger:hover { background: var(--op-danger-wash); }
+.op-menusep { height: 1px; margin: var(--op-1) var(--op-2); background: var(--op-line-2); }
+.op-scrim { position: fixed; inset: 0; background: var(--op-scrim); backdrop-filter: blur(10px) saturate(120%); animation: op-fade-in var(--op-t-3) var(--op-ease) both; }
+.op-scrim[data-state='closing'] { animation: op-fade-out var(--op-t-2) var(--op-ease-in) both; }
+.op-modal__anim { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none !important; animation: op-lift-in var(--op-t-3) var(--op-ease) both; }
+.op-modal__anim[data-state='closing'] { animation: op-lift-out var(--op-t-2) var(--op-ease-in) both; }
+.op-modal {
+  pointer-events: auto; width: min(460px, calc(100vw - 96px)); display: flex; flex-direction: column;
+  border-radius: var(--op-r-xl); background: var(--op-s3); backdrop-filter: var(--op-glass-heavy);
+  box-shadow: var(--op-sheet), var(--op-e4); overflow: hidden;
+}
+.op-modal__head { padding: var(--op-5) var(--op-5) var(--op-3); }
+.op-modal__title { font-size: var(--op-fs-15); font-weight: var(--op-w-semi); letter-spacing: var(--op-track-tight); }
+.op-modal__sub { font-size: var(--op-fs-12); color: var(--op-text-3); margin-top: 4px; }
+.op-modal__body { padding: var(--op-2) var(--op-5) var(--op-5); display: flex; flex-direction: column; gap: var(--op-4); }
+.op-modal__foot { display: flex; justify-content: flex-end; gap: var(--op-2); padding: var(--op-3) var(--op-5); background: var(--op-foot); box-shadow: inset 0 1px 0 var(--op-line); }
+.op-toasts { position: fixed; display: flex; flex-direction: column-reverse; gap: var(--op-2); width: 300px; }
+.op-toast {
+  position: relative; display: flex; align-items: flex-start; gap: var(--op-3); padding: var(--op-3);
+  border-radius: var(--op-r-lg); background: var(--op-flota); backdrop-filter: var(--op-glass);
+  box-shadow: var(--op-sheet), var(--op-e4); overflow: hidden; animation: op-slide-in-r var(--op-t-3) var(--op-ease) both;
+}
+.op-toast[data-state='closing'] { animation: op-slide-out-r var(--op-t-2) var(--op-ease-in) both; }
+.op-toast > .op-icon { color: var(--op-text-3); margin-top: 1px; width: 14px; height: 14px; }
+.op-toast__title { font-size: var(--op-fs-12); font-weight: var(--op-w-medium); }
+.op-toast__text { font-size: var(--op-fs-11); color: var(--op-text-3); margin-top: 2px; }
+.op-toast__life { position: absolute; left: 0; bottom: 0; height: 1.5px; width: 100%; background: var(--op-line-3); transform-origin: left; animation: op-toast-life var(--life, 3200ms) linear forwards; }
+
+/* ══ Las perillas de la maqueta (no son de la app) ════════════════════════ */
+.mq-panel {
+  display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow-y: auto;
+  padding: 18px; border-radius: 12px;
+  background: rgb(255 255 255 / .03); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .06);
+}
+.mq-panel__title { font-size: var(--op-fs-10); font-weight: var(--op-w-semi); letter-spacing: var(--op-track-caps); text-transform: uppercase; color: var(--op-text-3); }
+.mq-panel__lede { font-size: var(--op-fs-12); color: var(--op-text-3); line-height: 1.55; margin-top: 6px; }
+.mq-group { display: flex; flex-direction: column; gap: 9px; }
+.mq-label { display: flex; align-items: baseline; justify-content: space-between; font-size: var(--op-fs-12); color: var(--op-text-2); font-weight: var(--op-w-medium); }
+.mq-val { font-family: var(--op-mono); font-size: 11px; color: var(--op-text-3); font-weight: 400; }
+.mq-seg { display: grid; width: 100%; }
+.mq-toggle { display: flex; align-items: center; gap: 10px; font-size: var(--op-fs-12); color: var(--op-text-2); cursor: default; }
+.mq-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mq-sep { height: 1px; background: rgb(255 255 255 / .06); flex: none; }
+.mq-swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.mq-swatch {
+  position: relative; height: 32px; border: 0; border-radius: 8px; cursor: default;
+  background: var(--op-deep); box-shadow: inset 0 0 0 1px rgb(var(--c) / .35);
+  transition: box-shadow var(--op-t-2) var(--op-ease-soft), transform var(--op-t-1) var(--op-ease-soft);
+}
+.mq-swatch::after { content: ''; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px; border-radius: 50%; background: rgb(var(--c)); box-shadow: 0 0 10px rgb(var(--c) / .5); transition: transform var(--op-t-2) var(--op-ease); }
+.mq-swatch:hover { box-shadow: inset 0 0 0 1px rgb(var(--c) / .6); }
+.mq-swatch:active { transform: scale(.94); }
+.mq-swatch.is-active { box-shadow: inset 0 0 0 1.5px rgb(var(--c) / .9), 0 0 14px rgb(var(--c) / .18); }
+.mq-swatch.is-active::after { transform: scale(1.25); }
+.mq-swatch--custom::after { background: conic-gradient(from 0deg, #f87171, #fbbf24, #4ade80, #22d3ee, #a78bfa, #f472b6, #f87171); box-shadow: none; }
+.mq-custom { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--op-t-3) var(--op-ease); }
+.mq-custom > div { overflow: hidden; min-height: 0; display: flex; flex-direction: column; gap: 9px; }
+.mq-custom.is-on { grid-template-rows: 1fr; }
+.mq-hue { -webkit-appearance: none; appearance: none; width: 100%; height: 14px; margin: 0; border-radius: 99px; background: var(--hue-bar); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .08); }
+.mq-hue::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--op-accent); box-shadow: 0 0 0 2px var(--op-text), var(--op-e1); }
+.mq-code {
+  position: relative; padding: 10px 36px 10px 12px; border-radius: 8px; background: var(--op-sunken);
+  box-shadow: var(--op-hairline); font-family: var(--op-mono); font-size: 10.5px; line-height: 1.6;
+  color: var(--op-text-2); white-space: pre; overflow-x: auto; user-select: text;
+}
+.mq-code .op-iconbtn { position: absolute; top: 6px; right: 6px; }
+</style>
+</head>
+<body>
+
+<div class="mq-desk">
+
+<div class="op-app is-flotante is-hoja" id="app">
+  <div class="op-fog" aria-hidden="true"></div>
+
+  <header class="op-titlebar">
+    <div class="op-brand" data-tip="Opal">
+      <svg class="op-brand__mark op-icon" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M8 2.4a5.6 5.6 0 1 1 0 11.2a5.6 5.6 0 1 1 0-11.2"/>
+        <path class="op-brand__trail" d="M4.33 7.02A3.8 3.8 0 0 1 7.02 4.33"/>
+      </svg>
+      <span class="op-brand__name">Opal</span>
+    </div>
+    <div class="op-titlebar__context" id="context"></div>
+  </header>
+
+  <div class="op-wincontrols">
+    <button class="op-wincontrol" data-win aria-label="Minimizar"><i data-icon="winMin"></i></button>
+    <button class="op-wincontrol" data-win aria-label="Maximizar"><i data-icon="winMax"></i></button>
+    <button class="op-wincontrol op-wincontrol--close" data-win aria-label="Cerrar"><i data-icon="winClose"></i></button>
+  </div>
+
+  <div class="op-body">
+    <nav class="op-rail">
+      <div class="op-rail__brand"><div>
+        <div class="op-brand">
+          <svg class="op-brand__mark op-icon" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8 2.4a5.6 5.6 0 1 1 0 11.2a5.6 5.6 0 1 1 0-11.2"/>
+            <path class="op-brand__trail" d="M4.33 7.02A3.8 3.8 0 0 1 7.02 4.33"/>
+          </svg>
+          <span class="op-brand__name">Opal</span>
+        </div>
+      </div></div>
+      <div class="op-rail__top">
+        <button class="op-btn op-btn--secondary op-btn--block" id="btn-new"><i data-icon="plus"></i> Nuevo ítem</button>
+      </div>
+      <div class="op-rail__nav op-scroll">
+        <div class="op-rail__group">
+          <button class="op-navitem" data-view="inicio"><i data-icon="home"></i> Inicio</button>
+          <button class="op-navitem" data-view="items"><i data-icon="list"></i> Ítems <span class="op-navitem__count" id="count">0</span></button>
+          <button class="op-navitem" data-view="terminal"><i data-icon="terminal"></i> Terminal</button>
+        </div>
+        <div class="op-rail__group">
+          <div class="op-rail__group-label">Sistema</div>
+          <button class="op-navitem" data-view="piezas"><i data-icon="layers"></i> Piezas</button>
+          <button class="op-navitem" data-view="ajustes"><i data-icon="settings"></i> Ajustes</button>
+        </div>
+      </div>
+      <div class="op-rail__foot" data-tip="C:\Users\francisco\AppData\Roaming\Opal\data">…\Roaming\Opal\data</div>
+    </nav>
+    <main class="op-main" id="view"></main>
+    <aside class="op-panel" id="panel" aria-label="Detalle"></aside>
+    <div class="op-composer" id="composer" inert>
+      <div class="op-composer__in"><div class="op-composer__pad">
+        <div class="op-composer__box">
+          <div class="op-composer__row">
+            <textarea class="op-composer__input" id="chat" rows="1" spellcheck="false" placeholder="Escribí algo y Enter: queda como un ítem nuevo"></textarea>
+            <button class="op-composer__send" id="send" disabled aria-label="Enviar" data-tip="Enviar"><i data-icon="keyUp"></i></button>
+          </div>
+        </div>
+          <div class="op-composer__foot">
+            <button class="op-iconbtn op-iconbtn--sm" id="attach" aria-label="Adjuntar" data-tip="Adjuntar"><i data-icon="plus"></i></button>
+            <button class="op-chip" id="modo" data-tip="Cómo se manda"><i data-icon="zap"></i><span class="op-chip__label" id="modo-label">Auto</span><i data-icon="chevronDown"></i></button>
+            <span class="op-spacer"></span>
+            <span class="op-composer__hint">Enter envía · Mayús+Enter, otra línea</span>
+          </div>
+      </div></div>
+    </div>
+  </div>
+
+  <footer class="op-statusbar">
+    <div class="op-statusbar__item"><i data-icon="list"></i> <span class="op-statusbar__value" id="stat-items">0</span> ítems</div>
+    <div class="op-statusbar__item"><i data-icon="save"></i> <span class="op-statusbar__value" id="stat-saved">hace 2 min</span></div>
+    <div class="op-spacer"></div>
+    <div class="op-statusbar__item">Electron <span class="op-statusbar__value op-mono">44.5.1</span></div>
+  </footer>
+</div>
+
+<aside class="mq-panel">
+  <div>
+    <div class="mq-panel__title">Maqueta · Opal, rail flotante</div>
+    <div class="mq-panel__lede">La app de la izquierda anda: navegá, abrí el menú de un ítem, creá uno, mirá los toasts. Las perillas no son parte de Opal.</div>
+  </div>
+
+  <div class="mq-group">
+    <div class="mq-label">El rail</div>
+    <div class="op-segmented mq-seg" id="seg-rail">
+      <button class="op-segmented__opt is-active" data-value="flotante">Hoja flotante</button>
+      <button class="op-segmented__opt" data-value="pegado">Pegado (hoy)</button>
+    </div>
+  </div>
+  <div class="mq-group">
+    <div class="mq-label">La vista</div>
+    <div class="op-segmented mq-seg" id="seg-vista">
+      <button class="op-segmented__opt is-active" data-value="hoja">En una hoja</button>
+      <button class="op-segmented__opt" data-value="niebla">Sobre la niebla</button>
+    </div>
+  </div>
+  <div class="mq-group">
+    <div class="mq-label">Botón de enviar</div>
+    <div class="op-segmented mq-seg" id="seg-send">
+      <button class="op-segmented__opt is-active" data-value="tallado">Tallado (Opal)</button>
+      <button class="op-segmented__opt" data-value="relleno">Relleno (NeonCode)</button>
+    </div>
+  </div>
+  <div class="mq-toggles">
+    <label class="mq-toggle"><button class="op-switch is-on" id="sw-titlebar" aria-label="Titlebar"></button> Titlebar</label>
+    <label class="mq-toggle"><button class="op-switch is-on" id="sw-statusbar" aria-label="Statusbar"></button> Statusbar</label>
+    <label class="mq-toggle"><button class="op-switch is-on" id="sw-contexto" aria-label="Contexto"></button> Contexto arriba</label>
+    <label class="mq-toggle"><button class="op-switch" id="sw-panel" aria-label="Panel derecho"></button> Panel derecho</label>
+    <label class="mq-toggle"><button class="op-switch" id="sw-composer" aria-label="Panel de chat abajo"></button> Chat abajo</label>
+  </div>
+
+  <div class="mq-sep"></div>
+
+  <div class="mq-group">
+    <div class="mq-label">Radio de las hojas <span class="mq-val" id="radius-val">14px</span></div>
+    <input class="op-slider" id="radius" type="range" min="6" max="22" step="1" value="14">
+  </div>
+  <div class="mq-group">
+    <div class="mq-label">Separación <span class="mq-val" id="gutter-val">8px</span></div>
+    <input class="op-slider" id="gutter" type="range" min="4" max="16" step="1" value="8">
+  </div>
+  <div class="mq-group">
+    <div class="mq-label">Ancho del rail <span class="mq-val" id="rail-val">224px</span></div>
+    <input class="op-slider" id="rail" type="range" min="180" max="280" step="2" value="224">
+  </div>
+  <div class="mq-group">
+    <div class="mq-label">Ancho del panel derecho <span class="mq-val" id="panelw-val">224px</span></div>
+    <input class="op-slider" id="panelw" type="range" min="200" max="360" step="2" value="224">
+  </div>
+  <div class="mq-group">
+    <div class="mq-label">Blur del vidrio <span class="mq-val" id="blur-val">17px</span></div>
+    <input class="op-slider" id="blur" type="range" min="6" max="32" step="1" value="17">
+  </div>
+  <div class="mq-group">
+    <div class="mq-label">Niebla <span class="mq-val" id="fog-val">1.0</span></div>
+    <input class="op-slider" id="fog" type="range" min="0" max="2.4" step="0.1" value="1">
+  </div>
+  <div class="mq-group">
+    <div class="mq-label">Base de lo que flota <span class="mq-val" id="flota-val">90%</span></div>
+    <input class="op-slider" id="flota" type="range" min="0" max="100" step="5" value="90">
+  </div>
+
+  <div class="mq-sep"></div>
+
+  <div class="mq-group">
+    <div class="mq-label">Acento <span class="mq-val" id="accent-name">luz</span></div>
+    <div class="mq-swatches" id="swatches"></div>
+    <div class="mq-custom" id="custom"><div>
+      <div class="mq-label">Matiz <span class="mq-val" id="hue-val">293°</span></div>
+      <input class="mq-hue" id="hue" type="range" min="0" max="360" value="293">
+      <div class="mq-label">Intensidad <span class="mq-val" id="chroma-val">0.16</span></div>
+      <input class="op-slider" id="chroma" type="range" min="0" max="0.24" step="0.005" value="0.16">
+      <div class="mq-label">Luz <span class="mq-val" id="light-val">72%</span></div>
+      <input class="op-slider" id="light" type="range" min="55" max="92" step="1" value="72">
+    </div></div>
+  </div>
+
+  <div class="mq-sep"></div>
+
+  <div class="mq-group">
+    <div class="mq-label">Lo elegido</div>
+    <div class="mq-code" id="resumen"></div>
+  </div>
+</aside>
+
+</div>
+
+<div id="op-layer"></div>
+
+<script>
+const ICONS = {"opal":"<path d=\"M8 2.4a5.6 5.6 0 1 1 0 11.2a5.6 5.6 0 1 1 0-11.2\"/><path class=\"op-brand__trail\" d=\"M4.33 7.02A3.8 3.8 0 0 1 7.02 4.33\"/>","home":"<path d=\"M2.4 6.9 8 2.2l5.6 4.7v6.1a1.2 1.2 0 0 1-1.2 1.2H3.6a1.2 1.2 0 0 1-1.2-1.2z\"/><path d=\"M6.3 14.2V9.4h3.4v4.8\"/>","list":"<path d=\"M5.6 4h8.2M5.6 8h8.2M5.6 12h8.2\"/><circle cx=\"2.6\" cy=\"4\" r=\".9\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"2.6\" cy=\"8\" r=\".9\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"2.6\" cy=\"12\" r=\".9\" fill=\"currentColor\" stroke=\"none\"/>","grid":"<rect x=\"2.2\" y=\"2.2\" width=\"5\" height=\"5\" rx=\"1.4\"/><rect x=\"8.8\" y=\"2.2\" width=\"5\" height=\"5\" rx=\"1.4\"/><rect x=\"2.2\" y=\"8.8\" width=\"5\" height=\"5\" rx=\"1.4\"/><rect x=\"8.8\" y=\"8.8\" width=\"5\" height=\"5\" rx=\"1.4\"/>","folder":"<path d=\"M2 4.4a1.6 1.6 0 0 1 1.6-1.6h2.5l1.5 1.9h4.8A1.6 1.6 0 0 1 14 6.3v5.3a1.6 1.6 0 0 1-1.6 1.6H3.6A1.6 1.6 0 0 1 2 11.6z\"/>","settings":"<path d=\"M2 4.6h3.4M9.4 4.6H14M2 11.4h5.4M11.4 11.4H14\"/><circle cx=\"7.4\" cy=\"4.6\" r=\"2\"/><circle cx=\"9.4\" cy=\"11.4\" r=\"2\"/>","sliders":"<path d=\"M3.2 2.4v11.2M8 2.4v11.2M12.8 2.4v11.2\"/><circle cx=\"3.2\" cy=\"10.6\" r=\"1.7\"/><circle cx=\"8\" cy=\"5.4\" r=\"1.7\"/><circle cx=\"12.8\" cy=\"9.4\" r=\"1.7\"/>","contrast":"<circle cx=\"8\" cy=\"8\" r=\"6.1\"/><path d=\"M8 1.9a6.1 6.1 0 0 1 0 12.2z\" fill=\"currentColor\" stroke=\"none\"/>","panel":"<rect x=\"1.8\" y=\"2.8\" width=\"12.4\" height=\"10.4\" rx=\"2\"/><path d=\"M9.9 2.8v10.4\"/>","plus":"<path d=\"M8 3.2v9.6M3.2 8h9.6\"/>","minus":"<path d=\"M3.2 8h9.6\"/>","close":"<path d=\"M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6\"/>","check":"<path d=\"M3.4 8.4 6.5 11.5 12.6 4.8\"/>","search":"<circle cx=\"7\" cy=\"7\" r=\"4.6\"/><path d=\"M10.4 10.4 14 14\"/>","copy":"<rect x=\"6\" y=\"6\" width=\"8\" height=\"8\" rx=\"2\"/><path d=\"M11 6V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h2\"/>","trash":"<path d=\"M2.6 4.4h10.8M6 4.4V3.1a1.1 1.1 0 0 1 1.1-1.1h1.8A1.1 1.1 0 0 1 10 3.1v1.3\"/><path d=\"M4.1 4.4l.6 8.1a1.5 1.5 0 0 0 1.5 1.4h3.6a1.5 1.5 0 0 0 1.5-1.4l.6-8.1\"/>","edit":"<path d=\"M8.6 3.2H4A1.8 1.8 0 0 0 2.2 5v7A1.8 1.8 0 0 0 4 13.8h7a1.8 1.8 0 0 0 1.8-1.8V7.4\"/><path d=\"M11.4 1.9a1.6 1.6 0 0 1 2.3 2.3L8.4 9.5l-2.6.6.6-2.6z\"/>","duplicate":"<rect x=\"2.2\" y=\"2.2\" width=\"7.4\" height=\"7.4\" rx=\"2\"/><path d=\"M6.4 12.4v.2a1.4 1.4 0 0 0 1.4 1.2h4.6a1.4 1.4 0 0 0 1.4-1.4V7.8a1.4 1.4 0 0 0-1.2-1.4h-.2\"/>","filter":"<path d=\"M2.2 3.8h11.6L9.4 9v4.2l-2.8-1.4V9z\"/>","more":"<circle cx=\"8\" cy=\"3.4\" r=\"1.15\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8\" cy=\"8\" r=\"1.15\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8\" cy=\"12.6\" r=\"1.15\" fill=\"currentColor\" stroke=\"none\"/>","moreH":"<circle cx=\"3.4\" cy=\"8\" r=\"1.15\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8\" cy=\"8\" r=\"1.15\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12.6\" cy=\"8\" r=\"1.15\" fill=\"currentColor\" stroke=\"none\"/>","external":"<path d=\"M9.2 2.4h4.4v4.4M13.6 2.4 7.6 8.4\"/><path d=\"M12 9.6V12a1.6 1.6 0 0 1-1.6 1.6H4A1.6 1.6 0 0 1 2.4 12V5.6A1.6 1.6 0 0 1 4 4h2.4\"/>","link":"<path d=\"M6.8 9.2a2.6 2.6 0 0 0 3.9.3l1.9-1.9a2.6 2.6 0 0 0-3.7-3.7l-1.1 1.1\"/><path d=\"M9.2 6.8a2.6 2.6 0 0 0-3.9-.3L3.4 8.4a2.6 2.6 0 0 0 3.7 3.7l1.1-1.1\"/>","download":"<path d=\"M8 2.4v7.8M4.7 7l3.3 3.3L11.3 7M2.8 13.4h10.4\"/>","upload":"<path d=\"M8 10.6V2.8M4.7 6.1 8 2.8l3.3 3.3M2.8 13.4h10.4\"/>","save":"<path d=\"M12.2 13.6H3.8a1.4 1.4 0 0 1-1.4-1.4V3.8a1.4 1.4 0 0 1 1.4-1.4h6.4l3.4 3.4v6.4a1.4 1.4 0 0 1-1.4 1.4z\"/><path d=\"M5 2.4v3.8h5V2.4M5 13.6V9.4h6\"/>","pin":"<path d=\"M6 2.4h4l-.6 4 2.2 2.4H4.4L6.6 6.4z\"/><path d=\"M8 8.8v4.8\"/>","retry":"<path d=\"M13.4 8a5.4 5.4 0 1 1-1.6-3.8\"/><path d=\"M13.6 1.9v3.4h-3.4\"/>","undo":"<path d=\"M3.2 7.4h7.4a3.4 3.4 0 0 1 0 6.8H6.4\"/><path d=\"M6.1 4.1 2.8 7.4l3.3 3.3\"/>","redo":"<path d=\"M12.8 7.4H5.4a3.4 3.4 0 0 0 0 6.8h4.2\"/><path d=\"M9.9 4.1l3.3 3.3-3.3 3.3\"/>","send":"<path d=\"M14 2 7.2 8.8M14 2 9.7 14.2 7.2 8.8 1.8 6.3z\"/>","play":"<path d=\"M5.6 3.4 12.6 8l-7 4.6z\"/>","pause":"<path d=\"M6 3.4v9.2M10 3.4v9.2\"/>","stop":"<rect x=\"4.4\" y=\"4.4\" width=\"7.2\" height=\"7.2\" rx=\"1.6\"/>","chevronRight":"<path d=\"M6 3.4 10.6 8 6 12.6\"/>","chevronLeft":"<path d=\"M10 3.4 5.4 8 10 12.6\"/>","chevronDown":"<path d=\"M3.4 6 8 10.6 12.6 6\"/>","chevronUp":"<path d=\"M3.4 10 8 5.4 12.6 10\"/>","arrowRight":"<path d=\"M2.4 8h11.2M9.4 3.8 13.6 8l-4.2 4.2\"/>","arrowLeft":"<path d=\"M13.6 8H2.4M6.6 3.8 2.4 8l4.2 4.2\"/>","arrowUpRight":"<path d=\"M4.4 11.6 11.6 4.4M5.6 4.4h6v6\"/>","alert":"<path d=\"M8 2.3 14.4 13.4H1.6z\"/><path d=\"M8 6.4v3.1M8 11.5v.6\"/>","info":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M8 7.4v3.6M8 4.9v.6\"/>","clock":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M8 4.6V8l2.4 1.7\"/>","calendar":"<rect x=\"2.2\" y=\"3.4\" width=\"11.6\" height=\"10.4\" rx=\"1.8\"/><path d=\"M2.2 6.6h11.6M5.4 2v2.6M10.6 2v2.6\"/>","bell":"<path d=\"M4.2 7a3.8 3.8 0 0 1 7.6 0c0 3 1.2 4.2 1.2 4.2H3s1.2-1.2 1.2-4.2z\"/><path d=\"M6.6 13.4a1.6 1.6 0 0 0 2.8 0\"/>","zap":"<path d=\"M9.2 1.6 3.6 9h4l-.6 5.4L12.4 7H8.6z\"/>","target":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><circle cx=\"8\" cy=\"8\" r=\"2.8\"/><circle cx=\"8\" cy=\"8\" r=\".9\" fill=\"currentColor\" stroke=\"none\"/>","file":"<path d=\"M9.2 1.9H5A1.8 1.8 0 0 0 3.2 3.7v8.6A1.8 1.8 0 0 0 5 14.1h6a1.8 1.8 0 0 0 1.8-1.8V5.5z\"/><path d=\"M9.2 1.9v3.6h3.6\"/>","layers":"<path d=\"M8 1.9 14 5.1 8 8.3 2 5.1z\"/><path d=\"M2 10.9l6 3.2 6-3.2\"/>","book":"<path d=\"M2.4 3.2a1.4 1.4 0 0 1 1.4-1.4H12a1.4 1.4 0 0 1 1.4 1.4v9.6a1.4 1.4 0 0 0-1.4-1.4H3.8a1.4 1.4 0 0 1-1.4-1.4z\"/><path d=\"M2.4 10a1.4 1.4 0 0 1 1.4-1.4h9.6\"/>","inbox":"<path d=\"M2 8.6h3.2l1 2h3.6l1-2H14\"/><path d=\"M4.1 2.8h7.8l2.1 5.8v3.2a1.6 1.6 0 0 1-1.6 1.6H3.6A1.6 1.6 0 0 1 2 11.8V8.6z\"/>","hash":"<path d=\"M5.4 2.2 4.2 13.8M11.8 2.2l-1.2 11.6M2.4 5.6h11.2M1.8 10.4h11.2\"/>","terminal":"<rect x=\"1.8\" y=\"2.8\" width=\"12.4\" height=\"10.4\" rx=\"2\"/><path d=\"M4.6 6.2 6.8 8.4l-2.2 2.2M8.8 10.6h3\"/>","globe":"<circle cx=\"8\" cy=\"8\" r=\"6.1\"/><path d=\"M1.9 8h12.2\"/><path d=\"M8 1.9a9.4 9.4 0 0 1 0 12.2 9.4 9.4 0 0 1 0-12.2z\"/>","user":"<circle cx=\"8\" cy=\"5.4\" r=\"2.9\"/><path d=\"M2.9 14.1a5.4 5.4 0 0 1 10.2 0\"/>","tools":"<path d=\"M6 1.8v3.4M10 1.8v3.4M4.4 5.2h7.2v3.6a3.6 3.6 0 0 1-7.2 0zM8 12.4v1.8\"/>","lock":"<rect x=\"3\" y=\"7\" width=\"10\" height=\"6.8\" rx=\"2\"/><path d=\"M5.4 7V5.2a2.6 2.6 0 0 1 5.2 0V7\"/>","key":"<g transform=\"rotate(-45 8 8)\"><path d=\"M8.31 6.6H1.9V9.4H3.2V11H5.8V9.4H8.31A3.3 3.3 0 1 0 8.31 6.6Z\"/><circle cx=\"12.3\" cy=\"8\" r=\"1\" fill=\"currentColor\" stroke=\"none\"/></g>","eye":"<path d=\"M1.4 8S4 3.4 8 3.4 14.6 8 14.6 8 12 12.6 8 12.6 1.4 8 1.4 8z\"/><circle cx=\"8\" cy=\"8\" r=\"2.2\"/>","eyeOff":"<path d=\"M6.3 3.7A6.4 6.4 0 0 1 8 3.4c4 0 6.6 4.6 6.6 4.6a12 12 0 0 1-2 2.6M4 4.8A11.7 11.7 0 0 0 1.4 8S4 12.6 8 12.6a6.7 6.7 0 0 0 2.4-.4\"/><path d=\"M6.5 6.5a2.2 2.2 0 0 0 3 3M2.2 2.2l11.6 11.6\"/>","grip":"<circle cx=\"6\" cy=\"3.6\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"10\" cy=\"3.6\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"6\" cy=\"8\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"10\" cy=\"8\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"6\" cy=\"12.4\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"10\" cy=\"12.4\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>","zoomIn":"<circle cx=\"7\" cy=\"7\" r=\"4.6\"/><path d=\"M7 5.2v3.6M5.2 7h3.6M10.4 10.4 14 14\"/>","zoomOut":"<circle cx=\"7\" cy=\"7\" r=\"4.6\"/><path d=\"M5.2 7h3.6M10.4 10.4 14 14\"/>","fit":"<path d=\"M2.2 5.8V3.4a1.2 1.2 0 0 1 1.2-1.2h2.4M10.2 2.2h2.4a1.2 1.2 0 0 1 1.2 1.2v2.4M13.8 10.2v2.4a1.2 1.2 0 0 1-1.2 1.2h-2.4M5.8 13.8H3.4a1.2 1.2 0 0 1-1.2-1.2v-2.4\"/>","keyUp":"<path d=\"M8 13V3.4M3.9 7.5 8 3.4l4.1 4.1\"/>","keyDown":"<path d=\"M8 3v9.6M3.9 8.5 8 12.6l4.1-4.1\"/>","keyEnter":"<path d=\"M13.2 3.2v5.2a2 2 0 0 1-2 2H3.4\"/><path d=\"M6.4 7.4 3.2 10.4l3.2 3\"/>","winMin":"<path d=\"M2.5 8h11\"/>","winMax":"<rect x=\"3\" y=\"3\" width=\"10\" height=\"10\" rx=\"1.4\"/>","winRestore":"<rect x=\"2.6\" y=\"5.4\" width=\"8\" height=\"8\" rx=\"1.4\"/><path d=\"M5.4 2.6h6.6a1.4 1.4 0 0 1 1.4 1.4v6.6\"/>","winClose":"<path d=\"M3.5 3.5l9 9M12.5 3.5l-9 9\"/>"};
+const svg = (n, cls = '') => `<svg class="op-icon ${cls}" viewBox="0 0 16 16" aria-hidden="true">${ICONS[n] || ''}</svg>`;
+const mountIcons = (root = document) => root.querySelectorAll('i[data-icon]').forEach((i) => { i.outerHTML = svg(i.dataset.icon); });
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const app = document.getElementById('app');
+
+/* ══ Datos de ejemplo ═════════════════════════════════════════════════════ */
+const S = {
+  view: 'inicio',
+  items: [
+    { id: 'it-0007', name: 'Informe trimestral', state: 'running', when: 'hace 2 min', note: 'Exportando a PDF' },
+    { id: 'it-0006', name: 'Copia de seguridad', state: 'waiting', when: 'hace 18 min', note: 'Espera la red' },
+    { id: 'it-0005', name: 'Catálogo de muestras', state: 'done', when: 'hace 1 h', note: '' },
+    { id: 'it-0004', name: 'Sincronizar etiquetas', state: 'failed', when: 'hace 3 h', note: 'El servidor no contestó' },
+    { id: 'it-0003', name: 'Borrador de la tesina', state: 'idle', when: 'ayer', note: '' },
+    { id: 'it-0002', name: 'Planilla de gastos', state: 'done', when: 'ayer', note: '' },
+    { id: 'it-0001', name: 'Notas de la reunión', state: 'idle', when: 'hace 3 días', note: '' },
+  ],
+  auto: true,
+};
+const TITLES = { inicio: 'Inicio', items: 'Ítems', terminal: 'Terminal', piezas: 'Piezas', ajustes: 'Ajustes' };
+
+/* ══ Vistas ═══════════════════════════════════════════════════════════════ */
+const mark = (st) => `<span class="op-mark" data-state="${st}"><span class="op-mark__halo"></span><span class="op-mark__core"></span></span>`;
+const head = ({ title, sub, actions = '' }) => `
+  <div class="op-viewhead"><div><div class="op-viewhead__title">${title}</div><div class="op-viewhead__sub">${sub}</div></div>
+  ${actions ? `<div class="op-viewhead__actions">${actions}</div>` : ''}</div>`;
+const fila = (it) => `
+  <div class="op-listitem" data-id="${it.id}">${mark(it.state)}
+    <div class="op-listitem__main"><span class="op-listitem__title">${esc(it.name)}</span>
+      <span class="op-listitem__sub">${it.id} · ${it.when}${it.note ? ' · ' + esc(it.note) : ''}</span></div>
+    <div class="op-rowactions"><button class="op-iconbtn op-iconbtn--sm" data-more="${it.id}" aria-label="Más" data-tip="Más"><i data-icon="more"></i></button></div>
+  </div>`;
+const nuevo = '<button class="op-btn op-btn--primary" data-action="new"><i data-icon="plus"></i> Nuevo ítem</button>';
+
+const VIEWS = {
+  inicio: () => head({ title: 'Inicio', sub: 'Plantilla Opal corriendo sobre datos reales en disco', actions: nuevo }) + `
+    <div class="op-scroll">
+      <div class="op-row" style="gap:40px;margin-bottom:28px;flex-wrap:wrap">
+        <div class="op-stat"><span class="op-stat__value">${S.items.length}</span><span class="op-stat__label">Ítems</span></div>
+        <div class="op-stat"><span class="op-stat__value">4.2 kB</span><span class="op-stat__label">En disco</span></div>
+        <div class="op-stat"><span class="op-stat__value">44.5.1</span><span class="op-stat__label">Electron</span></div>
+      </div>
+      <div class="op-section">
+        <div class="op-section__head"><span class="op-section__title">Recientes</span>
+          <button class="op-btn op-btn--ghost op-btn--sm" data-goto="items">Ver los ${S.items.length} <i data-icon="chevronRight"></i></button></div>
+        <div class="op-list">${S.items.slice(0, 5).map(fila).join('')}</div>
+      </div>
+    </div>`,
+  items: () => head({ title: 'Ítems', sub: `${S.items.length} ítems en C:\\Users\\francisco\\AppData\\Roaming\\Opal\\data`, actions: nuevo }) + `
+    <div class="op-scroll"><div class="op-list">${S.items.map(fila).join('')}</div></div>`,
+  terminal: () => head({ title: 'Terminal', sub: 'pwsh 7.5 · de mentira: escribí help', actions: '<button class="op-btn op-btn--ghost op-btn--sm" data-term="limpiar"><i data-icon="trash"></i> Limpiar</button>' }) + `
+    <div class="op-term-wrap"><div class="op-term" id="term">
+      <div id="term-out"></div><div class="op-term__line" id="term-line"></div>
+      <textarea class="op-term__input" id="term-in" rows="1" spellcheck="false" autocomplete="off" aria-label="Terminal"></textarea>
+    </div></div>`,
+  piezas: () => head({ title: 'Piezas', sub: 'Todos los primitivos del sistema, vivos' }) + `
+    <div class="op-scroll"><div style="max-width:680px">
+      <div class="op-section"><div class="op-section__head"><span class="op-section__title">Botones</span></div>
+        <div class="op-card"><div class="op-card__body op-row" style="gap:10px;flex-wrap:wrap">
+          <button class="op-btn op-btn--primary">Primario</button>
+          <button class="op-btn op-btn--secondary">Secundario</button>
+          <button class="op-btn op-btn--ghost">Ghost</button>
+          <button class="op-btn op-btn--danger">Eliminar</button>
+          <button class="op-iconbtn" data-tip="Copiar"><i data-icon="copy"></i></button>
+        </div></div></div>
+      <div class="op-section"><div class="op-section__head"><span class="op-section__title">Campos</span></div>
+        <div class="op-card"><div class="op-card__body op-col" style="gap:14px">
+          <div class="op-field"><span class="op-field__label">Nombre</span><input class="op-input" placeholder="Un ítem cualquiera"></div>
+          <div class="op-row" style="gap:12px"><button class="op-switch is-on" data-sw></button><span class="op-label">Un switch prendido</span></div>
+          <div class="op-segmented" data-seg style="max-width:280px"><button class="op-segmented__opt is-active">Compacta</button><button class="op-segmented__opt">Normal</button><button class="op-segmented__opt">Amplia</button></div>
+        </div></div></div>
+      <div class="op-section"><div class="op-section__head"><span class="op-section__title">Overlays</span></div>
+        <div class="op-card"><div class="op-card__body op-row" style="gap:10px;flex-wrap:wrap">
+          <button class="op-btn op-btn--secondary" data-demo="menu">Menú</button>
+          <button class="op-btn op-btn--secondary" data-demo="toast">Toast</button>
+          <button class="op-btn op-btn--secondary" data-demo="toast2">Otro toast</button>
+          <button class="op-btn op-btn--secondary" data-action="new">Modal</button>
+        </div></div></div>
+      <div class="op-section"><div class="op-section__head"><span class="op-section__title">Estados</span></div>
+        <div class="op-card"><div class="op-card__body op-row" style="gap:18px;flex-wrap:wrap">
+          ${['idle', 'running', 'waiting', 'done', 'failed'].map((s) => `<span class="op-row op-meta" style="gap:6px">${mark(s)} ${s}</span>`).join('')}
+        </div></div></div>
+    </div></div>`,
+  ajustes: () => head({ title: 'Ajustes', sub: 'Se guardan en settings.json, con escritura atómica' }) + `
+    <div class="op-scroll"><div style="max-width:620px">
+      <div class="op-section"><div class="op-section__head"><span class="op-section__title">Comportamiento</span></div>
+        <div class="op-card"><div class="op-card__body op-col" style="gap:18px">
+          <div class="op-row" style="gap:12px"><button class="op-switch${S.auto ? ' is-on' : ''}" data-sw></button>
+            <span class="op-col" style="gap:2px"><span class="op-label">Guardado automático</span><span class="op-meta">Escribe al salir de cada campo en vez de esperar un botón.</span></span></div>
+          <div class="op-field"><span class="op-field__label">Densidad</span>
+            <div class="op-segmented" data-seg style="max-width:280px"><button class="op-segmented__opt">Compacta</button><button class="op-segmented__opt is-active">Normal</button><button class="op-segmented__opt">Amplia</button></div></div>
+        </div></div></div>
+      <div class="op-section"><div class="op-section__head"><span class="op-section__title">Datos</span></div>
+        <div class="op-card"><div class="op-card__body"><div class="op-kv">
+          <span class="op-kv__k">Carpeta</span><span class="op-kv__v op-mono">C:\\Users\\francisco\\AppData\\Roaming\\Opal\\data</span>
+          <span class="op-kv__k">Ítems</span><span class="op-kv__v">${S.items.length}</span>
+          <span class="op-kv__k">Esquema</span><span class="op-kv__v op-mono">v1</span>
+        </div></div></div></div>
+      <div class="op-section"><div class="op-section__head"><span class="op-section__title">Acerca de</span></div>
+        <div class="op-card"><div class="op-card__body"><div class="op-kv">
+          <span class="op-kv__k">App</span><span class="op-kv__v">Opal 0.1.0</span>
+          <span class="op-kv__k">Electron</span><span class="op-kv__v op-mono">44.5.1</span>
+        </div></div></div></div>
+    </div></div>`,
+};
+
+/* El inspector: muestra el ítem elegido. Cambiar de ítem es un fundido corto
+   del contenido; la hoja no se mueve. */
+let elegido = null;
+function pintarPanel() {
+  const it = S.items.find((x) => x.id === elegido) || S.items[0];
+  elegido = it?.id || null;
+  const p = document.getElementById('panel');
+  if (!it) { p.innerHTML = ''; return; }
+  const ESTADO = { idle: 'Sin usar', running: 'Corriendo', waiting: 'Esperando', done: 'Listo', failed: 'Falló' };
+  p.innerHTML = `<div class="op-panel__swap">
+    <div class="op-panel__head"><div style="min-width:0">
+      <div class="op-panel__title">${esc(it.name)}</div>
+      <div class="op-panel__sub">${it.id}</div></div></div>
+    <div class="op-panel__body op-scroll">
+      <div class="op-section"><div class="op-section__head"><span class="op-section__title">Estado</span></div>
+        <span class="op-status">${mark(it.state)} ${ESTADO[it.state] || it.state}</span></div>
+      <div class="op-section"><div class="op-section__head"><span class="op-section__title">Datos</span></div>
+        <div class="op-kv">
+          <span class="op-kv__k">Id</span><span class="op-kv__v op-mono">${it.id}</span>
+          <span class="op-kv__k">Cambió</span><span class="op-kv__v">${it.when}</span>
+          <span class="op-kv__k">Archivo</span><span class="op-kv__v op-mono">${it.id}.json</span>
+        </div></div>
+      <div class="op-section"><div class="op-section__head"><span class="op-section__title">Nota</span></div>
+        <div class="op-panel__note">${it.note ? esc(it.note) : '<span class="op-meta">Sin nota.</span>'}</div></div>
+    </div>
+    <div class="op-panel__foot">
+      <button class="op-btn op-btn--secondary op-btn--sm" data-panel="abrir"><i data-icon="edit"></i> Editar</button>
+      <button class="op-btn op-btn--ghost op-btn--sm op-btn--danger" data-panel="borrar"><i data-icon="trash"></i> Eliminar</button>
+    </div></div>`;
+  mountIcons(p);
+  p.querySelectorAll('.op-scroll').forEach(scrollFade);
+  document.querySelectorAll('.op-listitem').forEach((r) => r.classList.toggle('is-selected', r.dataset.id === elegido));
+}
+
+function go(view) {
+  S.view = view;
+  document.querySelectorAll('.op-navitem').forEach((b) => b.classList.toggle('is-active', b.dataset.view === view));
+  document.getElementById('context').textContent = TITLES[view];
+  const v = document.getElementById('view');
+  v.innerHTML = `<div class="op-view">${VIEWS[view]()}</div>`;
+  mountIcons(v);
+  v.querySelectorAll('.op-scroll').forEach(scrollFade);
+  v.querySelectorAll('[data-seg]').forEach((s) => bindSeg(s, () => {}));
+  contar();
+  pintarPanel();
+  if (view === 'terminal') montarTerminal();
+}
+function contar() {
+  document.getElementById('count').textContent = S.items.length;
+  document.getElementById('stat-items').textContent = S.items.length;
+}
+
+/* ══ La terminal (falsa) ══════════════════════════════════════════════════
+   La historia vive afuera de la vista: ir a otra y volver la deja como estaba. */
+const TERM = { lines: null, hist: [], hi: -1, cwd: 'C:\\Users\\francisco', busy: false };
+const eh = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ps = (cwd = TERM.cwd) => `<span class="op-term__ps">PS </span><span class="op-term__cwd">${eh(cwd)}</span><span class="op-term__ps">&gt; </span>`;
+const CMDS = ['help', 'ls', 'dir', 'cd', 'pwd', 'cat', 'echo', 'clear', 'cls', 'date', 'whoami', 'nuevo', 'history', 'opal', 'npm test', 'exit'];
+function termBienvenida() {
+  return [
+    '<span class="op-term__hi">Opal</span> <span class="op-term__dim">· terminal de maqueta · Roboto Mono</span>',
+    '<span class="op-term__dim">Nada de esto corre de verdad. Probá </span>help<span class="op-term__dim">, </span>ls<span class="op-term__dim">, </span>npm test<span class="op-term__dim"> o </span>nuevo Comprar yerba',
+    '',
+  ];
+}
+function montarTerminal() {
+  if (!TERM.lines) TERM.lines = termBienvenida();
+  const term = document.getElementById('term'), inp = document.getElementById('term-in');
+  document.getElementById('term-out').innerHTML = TERM.lines.map((l) => `<div class="op-term__line">${l}</div>`).join('');
+  inp.value = TERM.draft || '';
+  pintarLinea();
+  let quieto = null;
+  const tecleo = () => { term.classList.add('is-typing'); clearTimeout(quieto); quieto = setTimeout(() => term.classList.remove('is-typing'), 520); };
+  const repintar = () => requestAnimationFrame(pintarLinea);
+  inp.addEventListener('focus', () => term.classList.add('is-focus'));
+  inp.addEventListener('blur', () => term.classList.remove('is-focus'));
+  inp.addEventListener('input', () => { inp.value = inp.value.replace(/\r?\n/g, ''); TERM.draft = inp.value; tecleo(); repintar(); });
+  inp.addEventListener('keydown', (e) => {
+    if (TERM.busy) { if (e.ctrlKey && e.key.toLowerCase() === 'c') { TERM.busy = 'cortar'; } e.preventDefault(); return; }
+    tecleo();
+    if (e.key === 'Enter') { e.preventDefault(); return ejecutar(inp.value); }
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!TERM.hist.length) return;
+      TERM.hi = e.key === 'ArrowUp' ? Math.max(0, (TERM.hi < 0 ? TERM.hist.length : TERM.hi) - 1) : TERM.hi < 0 ? -1 : TERM.hi + 1;
+      if (TERM.hi >= TERM.hist.length) TERM.hi = -1;
+      inp.value = TERM.hi < 0 ? '' : TERM.hist[TERM.hi];
+      inp.setSelectionRange(inp.value.length, inp.value.length);
+      return repintar();
+    }
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const v = inp.value, hits = CMDS.filter((c) => c.startsWith(v) && v);
+      if (hits.length === 1) { inp.value = hits[0] + ' '; inp.setSelectionRange(inp.value.length, inp.value.length); }
+      else if (hits.length > 1) { escribir([ps() + `<span class="op-term__cmd">${eh(v)}</span>`, hits.join('   ')]); }
+      return repintar();
+    }
+    if (e.ctrlKey && e.key.toLowerCase() === 'l') { e.preventDefault(); TERM.lines = []; document.getElementById('term-out').innerHTML = ''; return repintar(); }
+    if (e.ctrlKey && e.key.toLowerCase() === 'c' && inp.selectionStart === inp.selectionEnd) {
+      e.preventDefault(); escribir([ps() + `<span class="op-term__cmd">${eh(inp.value)}</span><span class="op-term__dim">^C</span>`]); inp.value = ''; return repintar();
+    }
+    repintar();
+  });
+  inp.addEventListener('select', repintar);
+
+  // Click en el pozo: le da el foco al campo, salvo que se esté eligiendo texto.
+  term.addEventListener('mouseup', () => { if (window.getSelection().isCollapsed) inp.focus({ preventScroll: true }); });
+  term.classList.toggle('is-busy', !!TERM.busy);
+  inp.focus({ preventScroll: true });
+}
+// Una sola vez: el caret que se mueve con el mouse o con Mayús+flechas.
+document.addEventListener('selectionchange', () => { if (document.activeElement?.id === 'term-in') requestAnimationFrame(pintarLinea); });
+function pintarLinea() {
+  const inp = document.getElementById('term-in'), line = document.getElementById('term-line');
+  if (!inp || !line) return;
+  const v = inp.value, i = inp.selectionStart ?? v.length;
+  TERM.draft = v;
+  const ch = v[i];
+  line.innerHTML = TERM.busy ? '<span class="op-term__cur"><span> </span></span>'
+    : ps() + `<span class="op-term__cmd">${eh(v.slice(0, i))}<span class="op-term__cur"><span>${ch ? eh(ch) : ' '}</span></span>${eh(v.slice(i + 1))}</span>`;
+  const term = document.getElementById('term');
+  term.scrollTop = term.scrollHeight;
+}
+function escribir(ls, nuevo = true) {
+  const out = document.getElementById('term-out');
+  for (const l of ls) {
+    TERM.lines.push(l);
+    if (!out) continue;
+    const d = document.createElement('div'); d.className = 'op-term__line' + (nuevo ? ' is-in' : ''); d.innerHTML = l; out.appendChild(d);
+  }
+  if (TERM.lines.length > 400) TERM.lines.splice(0, TERM.lines.length - 400);
+  pintarLinea();
+}
+const pausa = (ms) => new Promise((r) => setTimeout(r, ms));
+async function ejecutar(raw) {
+  const inp = document.getElementById('term-in');
+  const cmd = raw.trim();
+  escribir([ps() + `<span class="op-term__cmd">${eh(raw)}</span>`], false);
+  inp.value = ''; TERM.draft = ''; TERM.hi = -1;
+  if (!cmd) return pintarLinea();
+  if (TERM.hist[TERM.hist.length - 1] !== cmd) TERM.hist.push(cmd);
+  const [nombre, ...resto] = cmd.split(/\s+/); const arg = resto.join(' ');
+  const d = (t) => `<span class="op-term__dim">${t}</span>`;
+  switch (nombre.toLowerCase()) {
+    case 'help': case 'ayuda':
+      return escribir([
+        d('Comandos de esta terminal de mentira:'),
+        '  ls, dir        ' + d('los ítems, como archivos'),
+        '  cat &lt;id&gt;       ' + d('uno de ellos, en JSON'),
+        '  nuevo &lt;nombre&gt; ' + d('crea un ítem de verdad (en la maqueta)'),
+        '  cd, pwd        ' + d('moverse (poco)'),
+        '  echo, date, whoami, history, opal',
+        '  npm test       ' + d('una salida que llega de a poco (Ctrl+C la corta)'),
+        '  clear, cls     ' + d('o Ctrl+L'),
+        d('Flechas arriba y abajo: historial · Tab: completa'), '']);
+    case 'ls': case 'dir': case 'gci': {
+      if (!S.items.length) return escribir([d('(vacío)'), '']);
+      return escribir(['', d('    Directorio: ' + eh(TERM.cwd) + '\\data'), '', d('Modo   Cambió          Nombre'), d('----   ------          ------'),
+        ...S.items.map((it) => `-a---  ${eh(it.when.padEnd(15))} <span class="op-term__hi">${it.id}</span>.json  ${d(eh(it.name))}`), '']);
+    }
+    case 'cat': case 'type': case 'gc': {
+      const it = S.items.find((x) => x.id === arg.replace(/\.json$/, ''));
+      if (!it) return escribir([`<span class="op-term__err">cat: no existe «${eh(arg || '?')}». Probá ls.</span>`, '']);
+      return escribir([JSON.stringify({ id: it.id, name: it.name, state: it.state, note: it.note }, null, 2).split('\n').map(eh).join('\n'), '']);
+    }
+    case 'nuevo': case 'new': {
+      if (!arg) return escribir([`<span class="op-term__err">nuevo: falta el nombre.</span> ${d('Ej.: nuevo Comprar yerba')}`, '']);
+      const it = { id: 'it-' + String(1000 + S.items.length + Math.floor(Math.random() * 8000)).slice(-4), name: arg, state: 'idle', when: 'recién', note: 'desde la terminal' };
+      S.items.unshift(it); contar();
+      toast({ icon: 'terminal', title: 'Creado desde la terminal', text: it.name });
+      return escribir([`Creado <span class="op-term__hi">${it.id}</span>.json  ${d(eh(it.name))}`, '']);
+    }
+    case 'pwd': return escribir(['', d('Path'), d('----'), eh(TERM.cwd), '']);
+    case 'cd': case 'sl': {
+      if (!arg || arg === '~') TERM.cwd = 'C:\\Users\\francisco';
+      else if (arg === '..') TERM.cwd = TERM.cwd.includes('\\', 3) ? TERM.cwd.replace(/\\[^\\]+$/, '') : 'C:\\';
+      else if (/^[a-z]:\\?$/i.test(arg)) TERM.cwd = arg[0].toUpperCase() + ':\\';
+      else TERM.cwd = (TERM.cwd.endsWith('\\') ? TERM.cwd : TERM.cwd + '\\') + arg.replace(/[\\/]+$/, '');
+      return escribir([]);
+    }
+    case 'echo': case 'write-output': return escribir([eh(arg), '']);
+    case 'date': case 'get-date': return escribir([new Date().toLocaleString('es-AR', { dateStyle: 'full', timeStyle: 'medium' }), '']);
+    case 'whoami': return escribir(['umbrocore-x\\francisco', '']);
+    case 'history': case 'h': return escribir([...TERM.hist.map((h, i) => d(String(i + 1).padStart(4)) + '  ' + eh(h)), '']);
+    case 'clear': case 'cls': TERM.lines = []; document.getElementById('term-out').innerHTML = ''; return pintarLinea();
+    case 'exit': toast({ icon: 'info', title: 'Es una maqueta', text: 'No hay de dónde salir: la terminal se queda.' }); return escribir([]);
+    case 'opal': return escribir([
+      '<span class="op-term__hi">Opal</span> 0.1.0 ' + d('· la plantilla de vidrio'),
+      d('Electron ') + '44.5.1' + d(' · Chromium ') + '152',
+      d('acento ') + K.accent + d(' · niebla ') + document.getElementById('fog-val').textContent + d(' · blur ') + document.getElementById('blur-val').textContent, '']);
+    case 'npm': {
+      if (arg !== 'test') return escribir([`<span class="op-term__err">npm: en la maqueta solo anda «npm test».</span>`, '']);
+      TERM.busy = true; pintarLinea();
+      document.getElementById('term').classList.add('is-busy');
+      const pasos = [['', 120], [d('&gt; opal@0.1.0 test'), 60], [d('&gt; node --test test/'), 380], ['', 60],
+        ['<span class="op-term__hi">pass</span> tokens en sincronía ' + d('(4 ms)'), 260], ['<span class="op-term__hi">pass</span> contraste del texto, 4,5:1 ' + d('(11 ms)'), 300],
+        ['<span class="op-term__hi">pass</span> store: archivo tomado ' + d('(38 ms)'), 420], ['<span class="op-term__hi">pass</span> store: ajustes en fila ' + d('(22 ms)'), 340],
+        ['<span class="op-term__hi">pass</span> formato de fechas ' + d('(2 ms)'), 200], ['', 80], [d('tests 5 · pass 5 · fail 0'), 0]];
+      let cortado = false;
+      for (const [l, ms] of pasos) {
+        if (TERM.busy === 'cortar') { cortado = true; break; }
+        escribir([l]); await pausa(ms);
+      }
+      TERM.busy = false;
+      document.getElementById('term')?.classList.remove('is-busy');
+      return escribir(cortado ? [d('^C'), ''] : ['']);
+    }
+    default:
+      return escribir([`<span class="op-term__err">${eh(nombre)}: no se reconoce como un comando. Probá help.</span>`, '']);
+  }
+}
+
+/* ══ Overlays: menú, modal, toast (de a uno), tooltip ═════════════════════ */
+const layer = document.getElementById('op-layer');
+const leave = (el, ms = 180) => { if (!el || el.dataset.state === 'closing') return; el.dataset.state = 'closing'; setTimeout(() => el.remove(), ms); };
+
+let menuEl = null, menuBtn = null;
+let menuAlCerrar = null;
+function showMenu(btn, items, lado = 'abajo', alCerrar = null) {
+  closeMenu();
+  menuAlCerrar = alCerrar;
+  menuBtn = btn; btn.closest('.op-rowactions')?.classList.add('is-open');
+  menuEl = document.createElement('div');
+  menuEl.className = 'op-menu';
+  menuEl.innerHTML = items.map((it, i) => it === 'sep' ? '<div class="op-menusep"></div>'
+    : `<button class="op-menuitem${it.danger ? ' op-menuitem--danger' : ''}" data-i="${i}">${svg(it.icon)}${it.label}</button>`).join('');
+  layer.appendChild(menuEl);
+  const r = btn.getBoundingClientRect();
+  menuEl.style.left = (lado === 'arriba' ? Math.max(8, r.left) : Math.max(8, r.right - menuEl.offsetWidth)) + 'px';
+  menuEl.style.top = (lado === 'arriba' ? r.top - menuEl.offsetHeight - 6 : r.bottom + 6) + 'px';
+  menuEl.addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (!b) return; const it = items[+b.dataset.i]; closeMenu(); it.run?.(); });
+}
+function closeMenu() { if (menuEl) { leave(menuEl, 120); menuEl = null; menuBtn?.closest('.op-rowactions')?.classList.remove('is-open'); menuAlCerrar?.(); menuAlCerrar = null; } }
+
+let modal = null;
+function showModal() {
+  closeModal();
+  const scrim = document.createElement('div'); scrim.className = 'op-scrim';
+  const anim = document.createElement('div'); anim.className = 'op-modal__anim';
+  anim.innerHTML = `<div class="op-modal"><div class="op-modal__head"><div class="op-modal__title">Nuevo ítem</div>
+    <div class="op-modal__sub">Queda como un archivo JSON en tu carpeta de datos.</div></div>
+    <div class="op-modal__body"><div class="op-field"><span class="op-field__label">Nombre</span><input class="op-input" id="f-name" placeholder="Algo para hacer"></div></div>
+    <div class="op-modal__foot"><button class="op-btn op-btn--ghost" data-close>Cancelar</button><button class="op-btn op-btn--primary" id="f-ok">Crear</button></div></div>`;
+  layer.append(scrim, anim);
+  scrim.addEventListener('click', closeModal);
+  anim.querySelector('[data-close]').addEventListener('click', closeModal);
+  anim.querySelector('#f-ok').addEventListener('click', () => {
+    const name = anim.querySelector('#f-name').value.trim() || 'Ítem nuevo';
+    const n = S.items.length + 1;
+    S.items.unshift({ id: 'it-' + String(n + 1).padStart(4, '0'), name, state: 'idle', when: 'recién', note: '' });
+    closeModal(); go(S.view); toast({ icon: 'check', title: 'Creado', text: name });
+  });
+  modal = [scrim, anim];
+  setTimeout(() => anim.querySelector('#f-name').focus(), 60);
+}
+function closeModal() { if (modal) { modal.forEach((p) => leave(p, 200)); modal = null; } }
+
+// Toast de a uno, como el de Opal: el igual renueva, el distinto releva.
+let toastsEl = null, actual = null;
+function toast({ icon = 'info', title, text = '', life = 3200 }) {
+  if (!toastsEl) { toastsEl = document.createElement('div'); toastsEl.className = 'op-toasts'; layer.appendChild(toastsEl); }
+  colocarToasts();
+  const clave = title + '\n' + text;
+  if (actual && actual.el.dataset.state !== 'closing') {
+    if (actual.clave === clave) { actual.renovar(); return; }
+    actual.cerrar(); var relevo = true;
+  }
+  const el = document.createElement('div');
+  el.className = 'op-toast';
+  el.style.setProperty('--life', life + 'ms');
+  el.innerHTML = `${svg(icon)}<div><div class="op-toast__title">${esc(title)}</div><div class="op-toast__text">${esc(text)}</div></div><span class="op-toast__life"></span>`;
+  let timer = 0;
+  const cerrar = () => { if (el.dataset.state === 'closing') return; clearTimeout(timer); if (actual?.el === el) actual = null; if (el.isConnected) leave(el, 200); else el.dataset.state = 'closing'; };
+  const renovar = () => { clearTimeout(timer); const l = el.querySelector('.op-toast__life'); l.style.animation = 'none'; void l.offsetWidth; l.style.animation = ''; timer = setTimeout(cerrar, life); };
+  actual = { el, clave, cerrar, renovar };
+  const montar = () => { if (el.dataset.state === 'closing') return; toastsEl.appendChild(el); timer = setTimeout(cerrar, life); };
+  relevo ? setTimeout(montar, 120) : montar();
+}
+function colocarToasts() {
+  if (!toastsEl) return;
+  const r = app.getBoundingClientRect();
+  const g = app.classList.contains('is-flotante') ? parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--op-gutter')) : 0;
+  const sb = app.classList.contains('sin-statusbar') ? 0 : 26;
+  toastsEl.style.right = (innerWidth - r.right + g + 16) + 'px';
+  const comp = app.classList.contains('con-composer') ? document.querySelector('.op-composer__box').getBoundingClientRect() : null;
+  toastsEl.style.bottom = (comp ? innerHeight - comp.top + 12 : innerHeight - r.bottom + Math.max(g, sb) + 16) + 'px';
+}
+
+let tipEl = null, tipFor = null, tipTimer = 0;
+document.addEventListener('pointerover', (e) => {
+  const a = e.target.closest('[data-tip]');
+  if (a === tipFor) return;
+  clearTimeout(tipTimer);
+  if (tipEl) { leave(tipEl, 110); tipEl = null; }
+  tipFor = a;
+  if (!a) return;
+  tipTimer = setTimeout(() => {
+    if (!a.isConnected) return;
+    tipEl = document.createElement('div'); tipEl.className = 'op-tooltip'; tipEl.textContent = a.dataset.tip;
+    layer.appendChild(tipEl);
+    const r = a.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+    tipEl.style.left = Math.min(innerWidth - w - 8, Math.max(8, r.left + r.width / 2 - w / 2)) + 'px';
+    tipEl.style.top = (r.top > 80 ? r.top - h - 8 : r.bottom + 8) + 'px';
+  }, 520);
+});
+document.addEventListener('pointerdown', () => { clearTimeout(tipTimer); if (tipEl) { leave(tipEl, 110); tipEl = null; } });
+
+function scrollFade(el) {
+  const up = () => { const s = el.scrollHeight - el.clientHeight; if (s <= 1) { el.classList.add('is-top', 'is-bottom'); return; } el.classList.toggle('is-top', el.scrollTop <= 1); el.classList.toggle('is-bottom', el.scrollTop >= s - 1); };
+  el.addEventListener('scroll', up, { passive: true });
+  new ResizeObserver(up).observe(el);
+  up();
+}
+function bindSeg(seg, onPick) {
+  const opts = [...seg.querySelectorAll('.op-segmented__opt')];
+  const place = () => { const w = Math.max(...opts.map((o) => o.offsetWidth)); seg.style.setProperty('--seg-w', w + 'px'); seg.style.setProperty('--seg', Math.max(0, opts.findIndex((o) => o.classList.contains('is-active')))); };
+  requestAnimationFrame(place);
+  seg.addEventListener('click', (e) => { const o = e.target.closest('.op-segmented__opt'); if (!o) return; opts.forEach((x) => x.classList.toggle('is-active', x === o)); place(); onPick(o.dataset.value); });
+}
+
+/* ══ Eventos de la app ════════════════════════════════════════════════════ */
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  const nav = t.closest('.op-navitem'); if (nav) return go(nav.dataset.view);
+  const goto = t.closest('[data-goto]'); if (goto) return go(goto.dataset.goto);
+  if (t.closest('#btn-new') || t.closest('[data-action="new"]')) return showModal();
+  const more = t.closest('[data-more]');
+  if (more) {
+    e.stopPropagation();
+    const it = S.items.find((x) => x.id === more.dataset.more);
+    return showMenu(more, [
+      { icon: 'edit', label: 'Renombrar', run: () => toast({ icon: 'edit', title: 'Renombrar', text: it.name }) },
+      { icon: 'duplicate', label: 'Duplicar', run: () => { S.items.unshift({ ...it, id: it.id + 'b', name: it.name + ' (copia)', when: 'recién' }); go(S.view); toast({ icon: 'duplicate', title: 'Duplicado', text: it.name }); } },
+      { icon: 'copy', label: 'Copiar el id', run: () => toast({ icon: 'copy', title: 'Copiado', text: it.id }) },
+      'sep',
+      { icon: 'trash', label: 'Eliminar', danger: true, run: () => { S.items = S.items.filter((x) => x !== it); go(S.view); toast({ icon: 'trash', title: 'Eliminado', text: it.name }); } },
+    ]);
+  }
+  const demo = t.closest('[data-demo]');
+  if (demo) {
+    if (demo.dataset.demo === 'menu') { e.stopPropagation(); return showMenu(demo, [{ icon: 'edit', label: 'Renombrar' }, { icon: 'copy', label: 'Copiar' }, 'sep', { icon: 'trash', label: 'Eliminar', danger: true }]); }
+    if (demo.dataset.demo === 'toast') return toast({ icon: 'check', title: 'Guardado', text: 'Tocalo de nuevo: no se repite' });
+    if (demo.dataset.demo === 'toast2') return toast({ icon: 'info', title: 'Otro aviso', text: 'Este releva al que estaba' });
+  }
+  const sw = t.closest('[data-sw]'); if (sw) return void sw.classList.toggle('is-on');
+  if (t.closest('[data-term="limpiar"]')) { TERM.lines = []; document.getElementById('term-out').innerHTML = ''; pintarLinea(); return document.getElementById('term-in').focus(); }
+  const pa = t.closest('[data-panel]');
+  if (pa) {
+    const it = S.items.find((x) => x.id === elegido);
+    if (pa.dataset.panel === 'borrar' && it) { S.items = S.items.filter((x) => x !== it); elegido = null; go(S.view); return toast({ icon: 'trash', title: 'Eliminado', text: it.name }); }
+    return toast({ icon: 'edit', title: 'Editar', text: it ? it.name : '' });
+  }
+  const row = t.closest('.op-listitem[data-id]');
+  if (row) { elegido = row.dataset.id; return pintarPanel(); }
+  if (t.closest('[data-win]')) return toast({ icon: 'info', title: 'Es una maqueta', text: 'Los controles de ventana no hacen nada acá.' });
+  if (!t.closest('.op-menu')) closeMenu();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeMenu(); closeModal(); } });
+window.addEventListener('resize', () => { colocarToasts(); closeMenu(); });
+
+/* ══ Las perillas ═════════════════════════════════════════════════════════ */
+const ROOT = document.documentElement.style;
+const PRESETS = [['luz', '240 243 247'], ['cian', '34 211 238'], ['violeta', '167 139 250'], ['verde', '74 222 128'], ['ambar', '251 191 36'], ['propio', null]];
+const NOMBRE = { luz: 'luz', cian: 'cian', violeta: 'violeta', verde: 'verde', ambar: 'ámbar', propio: 'propio' };
+const K = { rail: 'flotante', vista: 'hoja', titlebar: true, statusbar: true, contexto: true, panel: false, composer: false, send: 'tallado', accent: 'luz', rgb: '240 243 247' };
+
+function oklchToRgb(L, C, h) {
+  const a = C * Math.cos(h * Math.PI / 180), b = C * Math.sin(h * Math.PI / 180);
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s]
+    .map((v) => Math.round(Math.min(1, Math.max(0, v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(Math.max(v, 0), 1 / 2.4) - 0.055)) * 255));
+}
+const sw = document.getElementById('swatches');
+sw.innerHTML = PRESETS.map(([n, c]) => `<button class="mq-swatch${n === 'propio' ? ' mq-swatch--custom' : ''}" data-preset="${n}" style="--c:${c || '255 255 255'}" data-tip="${NOMBRE[n]}"></button>`).join('');
+function customRgb() {
+  const h = +document.getElementById('hue').value, C = +document.getElementById('chroma').value, L = +document.getElementById('light').value / 100;
+  document.getElementById('hue-val').textContent = h + '°';
+  document.getElementById('chroma-val').textContent = C.toFixed(3).replace(/0$/, '');
+  document.getElementById('light-val').textContent = Math.round(L * 100) + '%';
+  return oklchToRgb(L, C, h).join(' ');
+}
+function setAccent(name) {
+  const rgb = name === 'propio' ? customRgb() : PRESETS.find((p) => p[0] === name)[1];
+  ROOT.setProperty('--op-accent-rgb', rgb);
+  K.accent = name; K.rgb = rgb;
+  sw.querySelectorAll('.mq-swatch').forEach((b) => b.classList.toggle('is-active', b.dataset.preset === name));
+  sw.querySelector('[data-preset="propio"]').style.setProperty('--c', name === 'propio' ? rgb : '255 255 255');
+  document.getElementById('custom').classList.toggle('is-on', name === 'propio');
+  document.getElementById('accent-name').textContent = name === 'propio' ? rgb : NOMBRE[name];
+  pintar();
+}
+sw.addEventListener('click', (e) => { const b = e.target.closest('[data-preset]'); if (b) setAccent(b.dataset.preset); });
+['hue', 'chroma', 'light'].forEach((id) => document.getElementById(id).addEventListener('input', () => setAccent('propio')));
+function paintHueBar() {
+  const C = +document.getElementById('chroma').value, L = +document.getElementById('light').value / 100;
+  document.getElementById('hue').style.setProperty('--hue-bar', `linear-gradient(to right, ${Array.from({ length: 13 }, (_, i) => `rgb(${oklchToRgb(L, C, i * 30).join(' ')})`).join(',')})`);
+}
+['chroma', 'light'].forEach((id) => document.getElementById(id).addEventListener('input', paintHueBar));
+paintHueBar();
+
+const KNOBS = [
+  ['radius', '--op-sheet-r', (v) => v + 'px'],
+  ['gutter', '--op-gutter', (v) => v + 'px'],
+  ['rail', '--op-rail', (v) => v + 'px'],
+  ['panelw', '--op-panel', (v) => v + 'px'],
+  ['blur', '--op-blur', (v) => v + 'px'],
+  ['fog', '--op-fog', (v) => (+v).toFixed(1)],
+  ['flota', '--op-flota-base', (v) => v + '%'],
+];
+for (const [id, prop, fmt] of KNOBS) {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => { ROOT.setProperty(prop, fmt(el.value)); document.getElementById(id + '-val').textContent = fmt(el.value); pintar(); colocarToasts(); });
+}
+
+bindSeg(document.getElementById('seg-rail'), (v) => { K.rail = v; app.classList.toggle('is-flotante', v === 'flotante'); pintar(); setTimeout(colocarToasts, 300); });
+bindSeg(document.getElementById('seg-send'), (v) => { K.send = v; app.classList.toggle('send-relleno', v === 'relleno'); pintar(); });
+bindSeg(document.getElementById('seg-vista'), (v) => { K.vista = v; app.classList.toggle('is-hoja', v === 'hoja'); pintar(); });
+for (const [id, k, cls] of [['sw-titlebar', 'titlebar', 'sin-titlebar'], ['sw-statusbar', 'statusbar', 'sin-statusbar'], ['sw-contexto', 'contexto', 'sin-contexto'], ['sw-panel', 'panel', 'con-panel'], ['sw-composer', 'composer', 'con-composer']]) {
+  document.getElementById(id).addEventListener('click', (e) => {
+    K[k] = e.currentTarget.classList.toggle('is-on');
+    // El panel se PRENDE con su clase; las barras se apagan con la suya.
+    app.classList.toggle(cls, k === 'panel' || k === 'composer' ? K[k] : !K[k]);
+    if (k === 'composer') {
+      document.getElementById('composer').inert = !K[k];
+      if (K[k]) setTimeout(() => document.getElementById('chat').focus(), 200);
+    }
+    pintar(); setTimeout(colocarToasts, 300);
+  });
+}
+
+// El resumen de lo elegido, para implementarlo después en Opal.
+function pintar() {
+  document.querySelectorAll('.op-slider').forEach((s) => s.style.setProperty('--op-pct', ((s.value - s.min) / (s.max - s.min) * 100) + '%'));
+  const v = (id) => document.getElementById(id + '-val').textContent;
+  document.getElementById('resumen').innerHTML = `<button class="op-iconbtn op-iconbtn--sm" id="copiar" data-tip="Copiar">${svg('copy')}</button>` + esc(
+`rail:      ${K.rail === 'flotante' ? 'hoja flotante' : 'pegado'}
+vista:     ${K.vista === 'hoja' ? 'en una hoja' : 'sobre la niebla'}
+titlebar:  ${K.titlebar ? 'sí' : 'no'}${K.titlebar && !K.contexto ? ' (sin contexto)' : ''}
+statusbar: ${K.statusbar ? 'sí' : 'no'}
+panel der: ${K.panel ? 'sí, ' + v('panelw') : 'no'}
+chat abajo: ${K.composer ? 'sí, enviar ' + K.send : 'no'}
+--op-sheet-r:     ${v('radius')}
+--op-gutter:      ${v('gutter')}
+--op-rail:        ${v('rail')}
+--op-blur:        ${v('blur')}
+--op-fog:         ${v('fog')}
+--op-flota-base:  ${v('flota')}
+acento:    ${K.accent === 'propio' ? '"' + K.rgb + '"' : K.accent}`);
+  document.getElementById('copiar').addEventListener('click', () => {
+    navigator.clipboard?.writeText(document.getElementById('resumen').textContent).then(() => toast({ icon: 'copy', title: 'Copiado', text: 'La configuración elegida' }), () => {});
+  });
+}
+
+/* ══ El compositor ═════════════════════════════════════════════════════════
+   Crece con lo que escribís: un gemelo oculto con el mismo ancho y la misma
+   letra mide el alto, y el textarea VIAJA a ese alto (transición de height):
+   medirlo con height:auto lo haría saltar. Hasta 168 px; después scrollea. */
+const chat = document.getElementById('chat');
+const send = document.getElementById('send');
+const gemelo = document.createElement('div');
+document.body.appendChild(gemelo);
+function crecer() {
+  const cs = getComputedStyle(chat);
+  Object.assign(gemelo.style, { position: 'absolute', visibility: 'hidden', left: '-9999px', top: '0', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere',
+    width: chat.clientWidth + 'px', font: cs.font, lineHeight: cs.lineHeight, padding: cs.padding, boxSizing: 'border-box' });
+  gemelo.textContent = chat.value + '\u200b';
+  const max = parseFloat(cs.maxHeight);
+  const h = Math.min(max, Math.max(36, gemelo.scrollHeight));
+  chat.style.height = h + 'px';
+  chat.style.overflowY = gemelo.scrollHeight > max ? 'auto' : 'hidden';
+  send.disabled = !chat.value.trim();
+  colocarToasts();
+}
+chat.addEventListener('input', crecer);
+chat.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); enviar(); }
+});
+send.addEventListener('click', enviar);
+function enviar() {
+  const texto = chat.value.trim();
+  if (!texto) return;
+  const n = S.items.length + 1;
+  const it = { id: 'it-' + String(n + 1).padStart(4, '0'), name: texto.split('\n')[0].slice(0, 60), state: 'idle', when: 'recién', note: texto.includes('\n') ? texto.split('\n').slice(1).join(' ').slice(0, 120) : '' };
+  S.items.unshift(it);
+  elegido = it.id;
+  chat.value = '';
+  crecer();
+  go(S.view === 'inicio' || S.view === 'items' ? S.view : 'items');
+  toast({ icon: 'send', title: 'Creado desde el chat', text: it.name });
+}
+document.getElementById('attach').addEventListener('click', (e) => {
+  e.stopPropagation();
+  showMenu(e.currentTarget, [
+    { icon: 'file', label: 'Adjuntar archivo…', run: () => toast({ icon: 'file', title: 'Adjuntar', text: 'En la maqueta no se adjunta nada' }) },
+    { icon: 'copy', label: 'Pegar una captura', run: () => toast({ icon: 'copy', title: 'Pegar', text: 'En la maqueta no se pega nada' }) },
+  ], 'arriba');
+});
+const MODOS = ['Auto', 'Preciso', 'Rápido'];
+document.getElementById('modo').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const b = e.currentTarget;
+  b.classList.add('is-open');
+  showMenu(b, MODOS.map((m) => ({ icon: m === document.getElementById('modo-label').textContent ? 'check' : 'zap', label: m, run: () => {
+    const l = document.getElementById('modo-label');
+    if (l.textContent === m) return;
+    const nuevo = l.cloneNode(); nuevo.textContent = m; l.replaceWith(nuevo);
+  } })), 'arriba', () => b.classList.remove('is-open'));
+});
+
+/* ══ Arranque ═════════════════════════════════════════════════════════════ */
+mountIcons();
+document.querySelectorAll('.op-rail .op-scroll').forEach(scrollFade);
+setAccent('luz');
+go('inicio');
+</script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Vitra — la piel del Diario
+   Opal en su variante acrílico (Shell.set({ vidrio: 'acrilico' })): la
+   ventana entera es el vidrio (el escritorio que desenfoca Windows, con la
+   pila de UmbroSys encima, en shell.css) y adentro flotan tres hojas con
+   relleno y SIN blur propio: la lista, la nota y quién la nombra. Entre
+   ellas, aire (--op-gutter); ninguna línea divide nada.
+
+   Lo de abajo se trajo de UmbroSys (umbro.css, 1.22.0) cambiando us- por vt-:
+   el markdown, los colores del código, el Diario y el grafo. Su detalle de
+   color es el ámbar del Diario (--vt-acento), el mismo que el acento de la
+   app (tools/retint.mjs --accent "255 180 84").
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* los colores de los bloques de código (Prism): la paleta de la terminal de UmbroSys */
+.vt-md .token.comment, .vt-md .token.prolog, .vt-md .token.doctype { color: #84848c; font-style: italic; }
+.vt-md .token.keyword, .vt-md .token.boolean, .vt-md .token.important { color: #ce81e5; }
+.vt-md .token.string, .vt-md .token.char, .vt-md .token.template-string, .vt-md .token.attr-value { color: #93e9a0; }
+.vt-md .token.number, .vt-md .token.constant { color: #f0c551; }
+.vt-md .token.function, .vt-md .token.class-name { color: #9ec7fe; }
+.vt-md .token.operator, .vt-md .token.punctuation { color: #a9a9b1; }
+.vt-md .token.property, .vt-md .token.tag, .vt-md .token.selector, .vt-md .token.variable { color: rgb(var(--vt-tinta)); }
+.vt-md .token.regex, .vt-md .token.builtin { color: #7de8f3; }
+
+/* ── El markdown (md.js): la lectura de una nota ──
+   Para leer de corrido: el texto en el gris de lectura, los títulos en
+   blanco y con aire arriba, el código en mono sobre un pozo. Sin glifos: las
+   viñetas son puntitos de CSS y la cajita de una tarea, un borde. */
+.vt-md { --vt-tinta: 0 229 255; font-size: var(--op-fs-13); line-height: 1.7; color: var(--op-text-2); overflow-wrap: anywhere; user-select: text; }
+.vt-md > :first-child { margin-top: 0; }
+.vt-md > :last-child { margin-bottom: 0; }
+.vt-md p { margin: 0 0 .8em; }
+.vt-md :is(h1, h2, h3, h4, h5, h6) { margin: 1.5em 0 .5em; color: var(--op-text); font-weight: var(--op-w-semi); line-height: 1.3; letter-spacing: var(--op-track-tight); }
+.vt-md h1 { font-size: 19px; }
+.vt-md h2 { font-size: var(--op-fs-15); }
+.vt-md h3 { font-size: var(--op-fs-13); }
+.vt-md :is(h4, h5, h6) { font-size: var(--op-fs-12); color: var(--op-text-2); }
+.vt-md strong { color: var(--op-text); font-weight: var(--op-w-semi); }
+.vt-md del { color: var(--op-text-3); }
+.vt-md a { color: #7de8f3; text-decoration: underline; text-decoration-color: rgb(125 232 243 / .35); text-underline-offset: 2px; transition: text-decoration-color var(--op-t-1) var(--op-ease-soft); }
+.vt-md a:hover { text-decoration-color: currentColor; }
+.vt-md code { padding: 1px 5px; border-radius: var(--op-r-xs); background: var(--op-sunken); box-shadow: inset 0 0 0 1px var(--op-line); font: .92em var(--op-mono); color: var(--op-text); }
+.vt-md .md-codigo { margin: 0 0 1em; padding: 12px 14px; border-radius: var(--op-r-md); background: var(--op-sunken); box-shadow: inset 0 0 0 1px var(--op-line); overflow-x: auto; }
+.vt-md .md-codigo code { padding: 0; background: none; box-shadow: none; font-size: var(--op-fs-12); line-height: 1.55; white-space: pre; color: #e4e4e8; }
+.vt-md :is(ul, ol) { margin: 0 0 .8em; padding-left: 1.4em; }
+.vt-md li { margin: .2em 0; }
+.vt-md li > :is(ul, ol, p) { margin: .3em 0; }
+.vt-md ul { list-style: none; }
+.vt-md ul > li { position: relative; }
+.vt-md ul > li::before { content: ''; position: absolute; left: -1em; top: .72em; width: 4px; height: 4px; border-radius: 50%; background: var(--op-text-3); }
+.vt-md ol > li::marker { color: var(--op-text-3); font-family: var(--op-mono); font-size: .92em; }
+.vt-md ul > li.md-item-tarea::before { display: none; }
+.vt-md .md-tarea { display: inline-block; vertical-align: -2px; width: 12px; height: 12px; margin: 0 8px 0 -1.2em; border-radius: 3px; box-shadow: inset 0 0 0 1.5px var(--op-text-3); }
+.vt-md .md-tarea.is-hecha { background: var(--op-text-3); box-shadow: inset 0 0 0 1.5px var(--op-text-3), inset 0 0 0 3.5px var(--op-s1, #1a1a1d); }
+.vt-md blockquote { margin: 0 0 .8em; padding: 2px 0 2px 14px; box-shadow: inset 2px 0 0 var(--op-line-3); color: var(--op-text-3); }
+.vt-md hr { margin: 1.4em 0; border: 0; height: 1px; background: var(--op-line-2); }
+.vt-md .md-tabla { margin: 0 0 1em; overflow-x: auto; border-radius: var(--op-r-md); box-shadow: inset 0 0 0 1px var(--op-line-2); }
+.vt-md table { width: 100%; border-collapse: collapse; font-size: var(--op-fs-12); line-height: 1.5; }
+.vt-md :is(th, td) { padding: 7px 12px; text-align: left; vertical-align: top; }
+.vt-md th { color: var(--op-text); font-weight: var(--op-w-semi); background: var(--op-wash-1); }
+.vt-md tbody tr + tr td { box-shadow: inset 0 1px 0 var(--op-line); }
+
+/* ═══ El Diario (diario.js, grafo.js) ═══════════════════════════════════════════
+   Hojas flotantes con aire entre ellas, sin líneas y sin blur (la ventana
+   ya es el vidrio). La lista a la izquierda, la nota en el medio
+   y quién la nombra con su grafo chico a la derecha. Su detalle de color es el
+   ámbar de la cinta de su baldosa: la nota abierta en el grafo, el cursor y
+   los enlaces. Con la ventana angosta se va el panel de la derecha. */
+.vt-diario {
+  --vt-acento: 255 180 84;
+  grid-row: 2;
+  min-width: 0; min-height: 0;
+  display: grid; grid-template-columns: minmax(230px, 290px) minmax(0, 1fr) minmax(220px, 280px); gap: var(--op-gutter);
+  padding: 0 var(--op-gutter) var(--op-gutter);
+}
+/* angosta, se va el panel de la derecha (la nota manda) */
+@media (max-width: 900px) {
+  .vt-diario { grid-template-columns: minmax(200px, 250px) minmax(0, 1fr); }
+  .vt-diario > .vt-diario__panel { display: none; } /* más fuerte que el display: grid de abajo */
+}
+.vt-diario__lado, .vt-diario__hoja, .vt-diario__panel {
+  min-width: 0; min-height: 0; overflow: hidden;
+  border-radius: var(--op-sheet-r);
+  background: var(--op-s1);
+  box-shadow: var(--op-sheet), var(--op-e3);
+}
+
+/* la lista */
+.vt-diario__lado { display: grid; grid-template-rows: 46px minmax(0, 1fr); }
+.vt-diario__barra { display: flex; align-items: center; gap: 4px; padding: 0 8px; }
+.vt-diario__buscar { flex: 1; min-width: 0; }
+.vt-diario__buscar .op-input { height: 28px; width: 100%; }
+.vt-diario__lista { min-height: 0; display: flex; flex-direction: column; gap: 2px; padding: 2px 8px 8px; --op-fade: 12px; }
+.vt-diario__lista:focus { outline: none; }
+.vt-diario__mes { padding: 12px 8px 4px; font-size: var(--op-fs-10); font-weight: var(--op-w-semi); letter-spacing: .06em; text-transform: uppercase; color: var(--op-text-4); }
+.vt-diario__mes:first-child { padding-top: 4px; }
+.vt-diario__item {
+  display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 9px; align-items: start;
+  width: 100%; padding: 7px 8px; border: 0; border-radius: var(--op-r-lg);
+  background: transparent; color: inherit; text-align: left;
+  transition: var(--tr-color), box-shadow var(--op-t-2) var(--op-ease-soft);
+}
+.vt-diario__item:hover { background: var(--op-wash-1); }
+.vt-diario__item.is-activo { background: rgb(255 255 255 / .078); box-shadow: var(--op-sheet); }
+.vt-diario__ico {
+  width: 26px; height: 26px; border-radius: var(--op-r-sm); display: grid; place-items: center;
+  background: var(--op-sunken); box-shadow: inset 0 0 0 1px var(--op-line-2); color: var(--op-text-3);
+  transition: color var(--op-t-2) var(--op-ease-soft), box-shadow var(--op-t-2) var(--op-ease-soft);
+}
+.vt-diario__ico .op-icon { width: 13px; height: 13px; }
+.vt-diario__ico b { font: var(--op-w-semi) var(--op-fs-11) var(--op-mono); font-variant-numeric: tabular-nums; color: var(--op-text-2); transition: color var(--op-t-2) var(--op-ease-soft); }
+.vt-diario__item.is-activo .vt-diario__ico { box-shadow: inset 0 0 0 1px rgb(var(--vt-acento) / .45); color: rgb(var(--vt-acento)); }
+.vt-diario__item.is-activo .vt-diario__ico b { color: rgb(var(--vt-acento)); }
+.vt-diario__txt { display: grid; gap: 1px; min-width: 0; padding-top: 1px; }
+.vt-diario__fila { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.vt-diario__nom { flex: 1; min-width: 0; font-size: var(--op-fs-12); font-weight: var(--op-w-medium); color: var(--op-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color var(--op-t-2) var(--op-ease-soft); }
+.vt-diario__item.is-activo .vt-diario__nom { color: var(--op-text); }
+.vt-diario__cuando { flex: none; font: var(--op-fs-10) var(--op-mono); color: var(--op-text-3); }
+.vt-diario__res { font-size: var(--op-fs-11); color: var(--op-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vt-diario__res.is-vacia { color: var(--op-text-4); }
+.vt-diario__item--crear .vt-diario__ico { color: rgb(var(--vt-acento)); }
+.vt-diario__nada { margin: 0; padding: 12px 8px; font-size: var(--op-fs-12); line-height: 1.55; color: var(--op-text-3); }
+
+/* la nota */
+.vt-diario__hoja { display: flex; flex-direction: column; }
+.vt-diario__cab { flex: none; display: flex; align-items: flex-start; gap: 10px; padding: 14px 12px 4px 26px; }
+.vt-diario__cabtxt { flex: 1; min-width: 0; display: grid; gap: 5px; }
+.vt-diario__titulo { display: grid; margin: 0; min-height: 25px; font-size: var(--op-fs-19); font-weight: var(--op-w-semi); line-height: 1.3; color: var(--op-text); letter-spacing: var(--op-track-tight); overflow-wrap: anywhere; user-select: text; }
+.vt-diario__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-height: 18px; font-size: var(--op-fs-11); color: var(--op-text-3); }
+.vt-diario__chip { padding: 1px 7px; border-radius: var(--op-r-pill); background: var(--op-wash-1); box-shadow: inset 0 0 0 1px var(--op-line-2); color: var(--op-text-2); }
+.vt-diario__ruta { font-family: var(--op-mono); font-size: var(--op-fs-10); color: var(--op-text-4); user-select: text; }
+.vt-diario__estado { display: inline-grid; flex: none; align-self: flex-start; margin-top: 6px; font-size: var(--op-fs-11); color: var(--op-text-4); white-space: nowrap; transition: color var(--op-t-2) var(--op-ease-soft); }
+.vt-diario__estado.is-afuera { color: rgb(var(--vt-acento) / .85); }
+.vt-diario__estado.is-error { color: var(--op-danger, #ff6b6b); }
+.vt-diario__acciones { flex: none; display: flex; gap: 2px; padding-top: 2px; }
+.vt-diario__acciones .op-iconbtn { transition: var(--tr-color), opacity var(--op-t-2) var(--op-ease-soft); }
+.vt-diario__hoja.is-vacia .vt-diario__acciones :is([data-accion='modo'], [data-accion='mas']) { opacity: .35; pointer-events: none; }
+.vt-diario__hoja.is-grafo .vt-diario__acciones [data-accion='grafo'] { color: rgb(var(--vt-acento)); background: var(--op-wash-1); }
+
+/* el cuerpo: leer, escribir, el grafo grande y el vacío viven apilados y se relevan por opacidad */
+.vt-diario__cuerpo { position: relative; flex: 1 1 auto; min-height: 0; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+.vt-diario__cuerpo > :is(.vt-diario__leer, .vt-diario__editor, .vt-diario__grande, .vt-diario__vacio) {
+  grid-area: 1 / 1; min-height: 0; min-width: 0;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity var(--op-t-2) var(--op-ease-soft), visibility 0s linear var(--op-t-2);
+}
+.vt-diario__hoja:not(.is-escribir, .is-grafo, .is-vacia) .vt-diario__leer,
+.vt-diario__hoja.is-escribir:not(.is-grafo) .vt-diario__editor,
+.vt-diario__hoja.is-grafo .vt-diario__grande,
+.vt-diario__hoja.is-vacia:not(.is-grafo) .vt-diario__vacio {
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transition: opacity var(--op-t-2) var(--op-ease-soft), visibility 0s;
+}
+.vt-diario__leer { padding: 14px 26px 28px; --op-fade: 18px; }
+.vt-diario__leer:focus { outline: none; }
+.vt-diario__leer > .vt-md { max-width: 720px; }
+.vt-diario__editor {
+  resize: none; border: 0; outline: none; margin: 0; box-sizing: border-box;
+  padding: 14px 26px 28px; width: 100%; height: 100%;
+  background: transparent; color: var(--op-text-2); /* el mismo gris que la lectura: pasar de una a la otra no salta */
+  font: var(--op-fs-13) / 1.75 var(--op-font); letter-spacing: 0;
+  caret-color: rgb(var(--vt-acento));
+  white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4;
+  --op-fade: 18px;
+}
+.vt-diario__editor:focus-visible { outline: none; box-shadow: none; }
+.vt-diario__editor::placeholder { color: var(--op-text-4); }
+.vt-diario__editor::selection, .vt-diario__leer ::selection { background: rgb(var(--vt-acento) / .28); }
+.vt-diario__vacio { display: grid; place-items: center; padding: 20px; }
+/* el espejo con el que se mide dónde está el cursor (para el menú de [[ ]]) */
+.vt-diario__espejo { position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; white-space: pre-wrap; overflow-wrap: anywhere; box-sizing: border-box; border: 0 solid transparent; }
+
+/* los [[enlaces]] en la lectura: en ámbar; los que todavía no existen, punteados y apagados */
+.vt-md .md-wiki { color: rgb(var(--vt-acento)); text-decoration: none; border-radius: 3px; box-shadow: inset 0 -1px 0 rgb(var(--vt-acento) / .35); transition: box-shadow var(--op-t-1) var(--op-ease-soft), background-color var(--op-t-1) var(--op-ease-soft); }
+.vt-md .md-wiki:hover { background: rgb(var(--vt-acento) / .1); box-shadow: inset 0 -1px 0 rgb(var(--vt-acento) / .8); }
+.vt-md .md-wiki.is-fantasma { color: rgb(var(--vt-acento) / .6); box-shadow: none; text-decoration: underline dotted rgb(var(--vt-acento) / .45); text-underline-offset: 3px; }
+
+/* el menú de [[ ]]: como un menú de Opal, al lado del cursor; entra y sale por opacidad */
+.vt-diario__sugerir {
+  position: absolute; z-index: 5; left: 0; top: 0; width: 260px; max-height: 248px; overflow-y: auto;
+  padding: var(--op-1); border-radius: var(--op-r-lg);
+  background: linear-gradient(var(--op-s2), var(--op-s2)), oklch(14.5% calc(.0046 * var(--op-tint)) var(--op-hue) / .96);
+  box-shadow: var(--op-sheet), var(--op-e4);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity var(--op-t-1) var(--op-ease-in), visibility 0s linear var(--op-t-1);
+}
+.vt-diario__sugerir.is-on { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity var(--op-t-2) var(--op-ease), visibility 0s; }
+.vt-diario__sug {
+  display: flex; align-items: center; gap: 8px; width: 100%; height: 28px; padding: 0 8px;
+  border: 0; border-radius: var(--op-r-sm); background: transparent; color: var(--op-text-2);
+  font-size: var(--op-fs-12); text-align: left; transition: var(--tr-color);
+}
+.vt-diario__sug span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vt-diario__sug .op-icon { flex: none; width: 13px; height: 13px; color: var(--op-text-3); }
+.vt-diario__sug.is-activo { background: var(--op-wash-2); color: var(--op-text); }
+.vt-diario__sug.is-nueva .op-icon { color: rgb(var(--vt-acento)); }
+
+/* el panel: quién la nombra y el grafo chico */
+.vt-diario__panel { display: grid; grid-template-rows: minmax(0, 1fr) minmax(170px, 46%); }
+.vt-diario__sec { min-height: 0; display: flex; flex-direction: column; }
+.vt-diario__sectit { flex: none; display: flex; align-items: baseline; gap: 6px; padding: 14px 14px 6px; font-size: var(--op-fs-10); font-weight: var(--op-w-semi); letter-spacing: .06em; text-transform: uppercase; color: var(--op-text-4); }
+.vt-diario__cuenta { font-family: var(--op-mono); letter-spacing: 0; color: var(--op-text-3); }
+.vt-diario__back { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 8px; --op-fade: 12px; }
+.vt-diario__back > .vt-diario__nada { padding: 4px 6px; font-size: var(--op-fs-11); }
+.vt-diario__bl {
+  display: grid; gap: 3px; width: 100%; padding: 7px 8px; border: 0; border-radius: var(--op-r-md);
+  background: transparent; color: inherit; text-align: left; transition: var(--tr-color);
+}
+.vt-diario__bl:hover { background: var(--op-wash-1); }
+.vt-diario__blnom { font-size: var(--op-fs-12); font-weight: var(--op-w-medium); color: var(--op-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vt-diario__blren { font-size: var(--op-fs-11); line-height: 1.45; color: var(--op-text-3); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vt-diario__mini { position: relative; flex: 1 1 auto; min-height: 0; margin: 0 8px 8px; border-radius: var(--op-r-md); background: var(--op-sunken); box-shadow: var(--op-hairline); overflow: hidden; }
+.vt-diario__grande { position: relative; margin: 6px 12px 12px; border-radius: var(--op-r-md); background: var(--op-sunken); box-shadow: var(--op-hairline); overflow: hidden; }
+
+/* el grafo (grafo.js) */
+.vt-grafo__lienzo { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+.vt-grafo__lienzo:active { cursor: grabbing; }
+.vt-grafo__tip {
+  position: absolute; left: 0; top: 0; z-index: 2; max-width: 240px; padding: 5px 9px; border-radius: var(--op-r-sm);
+  background: oklch(14.5% calc(.0046 * var(--op-tint)) var(--op-hue) / .94); box-shadow: var(--op-sheet), var(--op-e2);
+  font-size: var(--op-fs-11); color: var(--op-text-2); pointer-events: none; white-space: nowrap;
+  display: grid; gap: 1px;
+  opacity: 0; transition: opacity var(--op-t-1) var(--op-ease-soft);
+}
+.vt-grafo__tip b { font-weight: var(--op-w-medium); color: var(--op-text); overflow: hidden; text-overflow: ellipsis; }
+.vt-grafo__tip span { font-size: var(--op-fs-10); color: var(--op-text-3); }
+.vt-grafo__tip.is-on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .vt-diario__cuerpo > *, .vt-diario__sugerir, .vt-grafo__tip { transition: none; }
+}

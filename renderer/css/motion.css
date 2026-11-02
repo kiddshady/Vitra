@@ -1,0 +1,345 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   OPAL — motion
+   Nada aparece ni desaparece de golpe. El movimiento es lo que comunica causa
+   y efecto; sin él la app se siente barata y sobresalta.
+
+   La firma de Opal es MATERIALIZARSE EN SU LUGAR: lo que aparece se enciende
+   donde va a quedar, sin subir ni deslizarse, y lo que se va se apaga donde
+   estaba. Nada cambia de lugar para entrar o salir (Fran, oct 2026: «botones
+   saltando»). Hasta entonces Opal afloraba (subía 8 px), los toasts entraban
+   de costado y el modal subía con peso. Las clases de entrada conservan sus
+   nombres (.op-in-rise, …) para no romper a quien las usa, pero todas son un
+   fundido.
+
+   Lo que de verdad cambia de forma no viaja: o se reserva el lugar (una
+   celda que mide lo del estado más grande: .op-celda y celda() en
+   motion.js) o se acomoda debajo de un fundido (swap con `fundido`,
+   dissolve(), calcar()).
+
+   Regla de oro de las salidas: un nodo que se va del DOM tiene que TERMINAR su
+   animación antes de irse. Eso lo maneja exit() en motion.js, que le pone
+   [data-state="closing"] y espera al animationend.
+
+   Y una regla propia del vidrio: el BLUR no se anima nunca. Es la propiedad
+   más cara del sistema; lo que entra y sale lo hace por opacity y transform,
+   que son GPU-composited, con el blur ya puesto.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes ───────────────────────────────────────────────────────────── */
+
+@keyframes op-fade-in    { from { opacity: 0 } to { opacity: 1 } }
+@keyframes op-fade-out   { from { opacity: 1 } to { opacity: 0 } }
+
+/* El tooltip crece apenas desde su punta: es lo único que entra moviéndose,
+   y queda así a propósito (Fran lo miró en la auditoría y prefirió este). */
+@keyframes op-pop-in     { from { opacity: 0; transform: scale(.965) translateY(-4px) } to { opacity: 1; transform: none } }
+@keyframes op-pop-out    { from { opacity: 1; transform: none } to { opacity: 0; transform: scale(.98) translateY(-2px) } }
+
+/* "Corriendo": lo único que respira en toda la pantalla. */
+@keyframes op-breathe {
+  0%, 100% { opacity: .35; transform: scale(1) }
+  50%      { opacity: 1;   transform: scale(1.06) }
+}
+@keyframes op-spin { to { transform: rotate(360deg) } }
+
+/* El arco del spinner recorre el círculo en vez de girar rígido. */
+@keyframes op-arc {
+  0%   { stroke-dasharray: 1 62;  stroke-dashoffset: 0 }
+  50%  { stroke-dasharray: 40 62; stroke-dashoffset: -12 }
+  100% { stroke-dasharray: 1 62;  stroke-dashoffset: -62 }
+}
+
+/* Aristas vivas de un grafo: el guion viaja en el sentido del flujo. */
+@keyframes op-flow { to { stroke-dashoffset: -24 } }
+
+/* Skeleton: una luz que barre, no un parpadeo. */
+@keyframes op-shimmer { from { background-position: -180% 0 } to { background-position: 180% 0 } }
+
+/* Click-flash: el destello de confirmación del press — un velo de luz sobre
+   el vidrio, no un ripple de Material. */
+@keyframes op-flash {
+  from { opacity: .5 }
+  to   { opacity: 0 }
+}
+
+/* Un valor que se actualizó en vivo: parpadeo de luz, sin mover el layout. */
+@keyframes op-tick {
+  0%   { color: var(--op-accent) }
+  100% { color: inherit }
+}
+
+/* Fallo: un aro rojo que se enciende alrededor y se apaga, en su lugar. Se
+   usa UNA vez, cuando algo se rompe. Antes temblaba (−4, +3, −2, +1 px). Es
+   un outline y no una sombra: no le pisa la suya a un campo o a un botón. */
+@keyframes op-shake {
+  0%   { outline: 2px solid rgb(var(--op-danger-rgb) / 0);   outline-offset: 2px }
+  25%  { outline: 2px solid rgb(var(--op-danger-rgb) / .55); outline-offset: 2px }
+  100% { outline: 2px solid rgb(var(--op-danger-rgb) / 0);   outline-offset: 2px }
+}
+
+/* ── Clases de entrada ───────────────────────────────────────────────────────
+   Se aplican al montar. `--i` escalona (stagger) los hijos de una lista:
+   style="--i:3" → arranca 3 × 26 ms después. Las cuatro son un fundido en su
+   lugar; rise, glide y pop quedan como nombres para no romper a quien las
+   usa, con sus tiempos (pop es la más rápida). */
+.op-in-fade, .op-in-rise, .op-in-glide { animation: op-fade-in var(--op-t-3) var(--op-ease) both; }
+.op-in-pop   { animation: op-fade-in var(--op-t-2) var(--op-ease) both; }
+
+.op-in-fade, .op-in-rise, .op-in-glide, .op-in-pop {
+  animation-delay: calc(var(--i, 0) * 26ms);
+}
+
+/* ── Salidas ─────────────────────────────────────────────────────────────────
+   exit() pone data-state="closing" y espera. Las salidas van más rápido
+   que las entradas: irse debe sentirse decidido, llegar debe sentirse suave. */
+[data-state='closing']:is(.op-in-fade, .op-in-rise, .op-in-glide, .op-in-pop) { animation: op-fade-out var(--op-t-1) var(--op-ease-in) both; }
+
+/* ── Click-flash ─────────────────────────────────────────────────────────────
+   Un velo de luz que nace en el press y decae. No es un ripple de Material:
+   no viaja, no tiene centro, solo confirma que el click llegó. */
+.op-flashable { position: relative; overflow: hidden; }
+.op-flashable > .op-flash {
+  position: absolute;
+  inset: 0;
+  background: var(--op-accent);
+  opacity: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  animation: op-flash 420ms var(--op-ease) forwards;
+}
+
+/* ── Revelado de alto ────────────────────────────────────────────────────────
+   El truco grid 0fr→1fr en vez de animar height (que genera jank y exige
+   conocer el alto de antemano). El hijo necesita min-height:0 + overflow. */
+.op-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--op-t-3) var(--op-ease);
+}
+.op-reveal > * { min-height: 0; overflow: hidden; }
+.op-reveal.is-open { grid-template-rows: 1fr; }
+
+/* ── Plegable: lo que se prende y se apaga con `hidden` ─────────────────────
+   `.op-reveal` es para cuando manejás una clase y tenés un envoltorio. Esto es
+   para lo que ya se prende con `el.hidden = …`: una barra que aparece, un
+   progreso, una pista, un dato de la statusbar. El JS no cambia: sigue
+   siendo `el.hidden`.
+
+   Desde octubre de 2026 se APAGA EN SU LUGAR y guarda su hueco: la opacidad
+   va a 0 y nada de alrededor se mueve. Antes se plegaba a alto (o ancho) 0
+   mientras se desvanecía, y todo lo que estaba después viajaba a ocupar el
+   hueco: el chip «último» se corría de costado y lo de abajo subía (Fran:
+   «botones saltando»). Si el hueco de verdad tiene que liberarse (una
+   sección que se cierra), eso es un cambio de forma y va debajo de un
+   fundido (swap con `fundido`, dissolve()).
+
+   - El `[hidden]` del navegador es `display: none`. Este lo pisa con
+     especificidad cero (:where): un componente que declara su `display` (un
+     .op-chip es inline-flex) se queda con el suyo, y uno que no declara nada
+     (un div) queda en bloque.
+   - `--ancho` (para una fila) es lo mismo; se llama distinto porque antes
+     plegaba el ancho. Queda en línea si nadie dice otra cosa.
+   - Apagado no toma clicks ni foco (`visibility`, que llega cuando terminó
+     de apagarse). Al prenderse espera un poco por si en el mismo lugar se
+     estaba apagando otro (el relevo). */
+:where(.op-plegable[hidden]) { display: block; }
+:where(.op-plegable--ancho) { display: inline-block; }
+.op-plegable.op-plegable,
+.op-plegable--ancho.op-plegable--ancho {
+  transition:
+    var(--tr-color),
+    opacity var(--op-t-2) var(--op-ease-soft) 60ms,
+    visibility 0s;
+}
+.op-plegable.op-plegable[hidden],
+.op-plegable--ancho.op-plegable--ancho[hidden] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    var(--tr-color),
+    opacity var(--op-t-out) var(--op-ease-both),
+    visibility 0s linear var(--op-t-out);
+}
+.op-plegable--ancho { white-space: nowrap; }
+
+/* Asentado (asentarPlegables, en motion.js): al repintar la misma vista, lo
+   que nace visible ya estaba a la vista y no se vuelve a encender debajo del
+   fundido. Tres clases para ganarle a la doble de arriba. */
+.op-plegable.op-plegable.is-placing,
+.op-plegable--ancho.op-plegable--ancho.is-placing { transition: none; }
+
+/* ── Celda: los estados de algo, en el mismo lugar ──────────────────────────
+   Un botón que cambia de rótulo (Copiar → Copiado, Exportar → Exportando…),
+   una píldora, el pie de una tarjeta que es botones o una barra: todos sus
+   estados viven en la misma celda de una grilla, así que la caja mide lo
+   del más grande desde que nace y no cambia nunca. Se cruzan solo por
+   opacidad: el que se prende espera a que el que se apaga vaya por la mitad.
+   Es el arreglo del botón de reiniciar de NTX (oct 2026), hecho pieza.
+
+     <span class="op-celda">
+       <span>Copiar</span>
+       <span hidden>Copiado</span>
+     </span>
+     celda(el, 1)   // motion.js: prende el segundo, apaga los demás
+
+   Los estados se apagan con `hidden`, que acá no saca nada del flujo: cada
+   uno sigue midiendo. Centrados de fábrica; `--start` y `--end` los alinean
+   a un borde. Un estado con varias cosas adentro (ícono y rótulo) es un
+   inline-flex; `--mid` los centra en alto (una barra en el alto de dos
+   botones). */
+.op-celda { display: inline-grid; justify-items: center; }
+.op-celda--start { justify-items: start; }
+.op-celda--end { justify-items: end; }
+.op-celda--mid { align-items: center; }
+.op-celda > * {
+  grid-area: 1 / 1;
+  transition: opacity var(--op-t-2) var(--op-ease-soft) 80ms, visibility 0s;
+}
+.op-celda > span { display: inline-flex; align-items: center; gap: var(--op-2); }
+.op-celda > [hidden] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--op-t-out) var(--op-ease-both), visibility 0s linear var(--op-t-out);
+}
+/* El `hidden` del navegador sacaría al estado del flujo: con especificidad
+   cero, lo que declara su display (una fila de botones) se queda con el suyo. */
+:where(.op-celda > [hidden]) { display: block; }
+
+/* ── Estados vivos ───────────────────────────────────────────────────────── */
+.op-breathing { animation: op-breathe 2.2s var(--op-ease-both) infinite; }
+.op-spinning  { animation: op-spin 900ms linear infinite; }
+.op-ticked    { animation: op-tick 700ms var(--op-ease-soft); }
+.op-shaking   { animation: op-shake 700ms var(--op-ease-soft); }
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+.op-skeleton {
+  border-radius: var(--op-r-sm);
+  background: linear-gradient(
+    100deg,
+    var(--op-s2) 38%,
+    rgba(255, 255, 255, .045) 50%,
+    var(--op-s2) 62%
+  );
+  background-size: 220% 100%;
+  animation: op-shimmer 1.7s var(--op-ease-both) infinite;
+}
+
+/* ── swap() ──────────────────────────────────────────────────────────────────
+   Las clases de `swap()` (motion.js): reescribir un bloque sin cortes. Las
+   mismas que en Onyx. La entrada va con especificidad cero —si el bloque trae
+   la suya, manda la suya— y el apagado se declara ANTES que la salida.
+
+   Sin `will-change` en lo que entra, a propósito (el swap() de antes lo
+   tenía, para que un valor con y decimal no saltara un píxel al asentarse):
+   ahora lo que entra puede ser un bloque entero, y `will-change: opacity` lo
+   volvería frontera de backdrop para siempre — una hoja de vidrio adentro
+   quedaría ciega (la regla de las hojas, README). */
+:where(.op-swap-in) { animation: op-fade-in var(--op-t-2) var(--op-ease-soft) both; }
+/* Con dirección (swap con `dir`) ya no sube ni baja (hasta oct 2026, 5 px):
+   se releva en su lugar y el contenedor destella (motion.js), como un número
+   que cambió. */
+.op-swap-in.is-after { animation-delay: 70ms; }
+.op-swap-in.is-settled { animation: none; }
+.op-swap-host { position: relative; }
+.op-swap-out { pointer-events: none; }
+/* El calco del relevo copia el acomodo del contenedor —flex o grilla,
+   centrado, separación, relleno— para que lo viejo no se mueva mientras se
+   esfuma. La grilla también: sin sus columnas, una grilla de 7 (los días de
+   un calendario) caía a una sola columna durante el fundido. */
+.op-swap-out--over {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: inherit;
+  flex-direction: inherit;
+  flex-wrap: inherit;
+  grid-template-columns: inherit;
+  grid-template-rows: inherit;
+  grid-auto-flow: inherit;
+  grid-auto-columns: inherit;
+  grid-auto-rows: inherit;
+  align-items: inherit;
+  justify-items: inherit;
+  justify-content: inherit;
+  align-content: inherit;
+  gap: inherit;
+  padding: inherit;
+}
+/* Un texto que se corta con puntos suspensivos se sigue cortando mientras se
+   va: el calco es un bloque propio y no hereda el corte. */
+.op-truncate > .op-swap-out--over { overflow: hidden; text-overflow: ellipsis; }
+/* In-out y no ease-in: hay alguien esperando detrás. Sin `from`: parte de
+   donde esté, aunque lo agarre entrando. */
+.op-swap-out[data-state='closing'] { animation: op-swap-out var(--op-t-out) var(--op-ease-both) both; }
+/* El fundido de un bloque grande (swap con `fundido`): el calco, con el fondo
+   opaco que le pone el JS, va por encima del `th` sticky de la tabla nueva
+   (z-index 2) y se esfuma en `t-2`. Solo acá: un relevo chico adentro de una
+   celda tiene que seguir pasando por DEBAJO del encabezado clavado. */
+.op-swap-out--fundido { z-index: 3; }
+.op-swap-out--fundido[data-state='closing'] { animation: op-dissolve var(--op-t-2) var(--op-ease-both) both; }
+
+@keyframes op-swap-out      { to { opacity: 0 } }
+
+/* ── Fundido (dissolve() en motion.js) ───────────────────────────────────────
+   El calco de lo que se va, encima de lo nuevo. Cada superficie le pone su
+   fondo opaco: si se viera a través, durante el fundido estarían las dos. */
+.op-dissolving { position: relative; z-index: 1; pointer-events: none; }
+.op-dissolving[data-state='closing'] { animation: op-dissolve var(--op-t-2) var(--op-ease-both) both; }
+@keyframes op-dissolve { to { opacity: 0 } }
+
+/* ── Transición de vista ─────────────────────────────────────────────────────
+   Al arrancar, la vista se materializa en su lugar (hasta oct 2026 subía 8 px). */
+.op-view { animation: op-fade-in var(--op-t-4) var(--op-ease) both; }
+
+/* Al cambiar de sección (y al repintar la misma), un fundido: la vieja pasa a
+   un calco (.op-main--saliente, lo arma calcar() en motion.js) en la misma
+   celda que la nueva, encima, y se esfuma. La nueva ya está entera y quieta
+   debajo, y el calco es opaco (la niebla de atrás, alineada con la de la
+   ventana), así que la pantalla está tapada en todo momento y lo único que
+   cambia es cuánto se ve de cada una. Si la nueva aflorara al mismo tiempo,
+   la pantalla se destaparía hasta la mitad y lo que las dos tienen en el
+   mismo lugar (el encabezado) temblaría. */
+.op-body > .op-main { grid-column: 3; grid-row: 1; }
+/* Cada vista es su propio contexto de apilamiento: un hijo de la vista nueva
+   con z-index alto (un th sticky, un panel absoluto) le ganaba al calco y se
+   veía entero desde el primer cuadro. No es bloque contenedor ni frontera de
+   backdrop: un vidrio de la vista sigue esmerilando. */
+.op-body > .op-main { isolation: isolate; }
+/* Doble clase: shell.css, que carga después, le da a .op-main su hoja. El
+   calco es opaco, así que su backdrop-filter no tendría nada que esmerilar:
+   lo que pinta es la niebla YA esmerilada, en un ::before con filter: la
+   misma luz de la hoja (--op-s0) sobre las mismas capas del sustrato,
+   alineadas con las de la ventana (fixed) y con el mismo blur. Sin el blur,
+   el grano de la niebla se veía nítido durante el fundido y la vista que se
+   iba parpadeaba de textura. El ::before se pasa de los bordes (inset
+   negativo) para que el blur no oscurezca los cantos; la hoja lo recorta. */
+.op-main.op-main--saliente {
+  position: relative;
+  pointer-events: none;
+  z-index: 1;
+  background: var(--op-bg);
+  backdrop-filter: none;
+}
+.op-main.op-main--saliente::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--op-blur) * -3);
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(var(--op-s0), var(--op-s0)), var(--op-sustrato), var(--op-bg);
+  background-attachment: fixed;
+  filter: var(--op-glass);
+}
+.op-main--saliente[data-state='closing'] { animation: op-dissolve var(--op-t-2) var(--op-ease-both) both; }
+
+/* Acrílico (tokens.css): detrás de la ventana está el escritorio, y ningún
+   calco opaco puede copiarlo: el de arriba pintaba un rectángulo de niebla
+   encima. Ahí el calco pasa a ser una hoja de vidrio de verdad, que esmerila
+   la vista nueva que tapa mientras se funde. */
+:root.vidrio-acrilico .op-main.op-main--saliente {
+  background: var(--op-s0);
+  backdrop-filter: var(--op-glass);
+}
+:root.vidrio-acrilico .op-main.op-main--saliente::before { content: none; }
