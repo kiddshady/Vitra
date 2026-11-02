@@ -67,7 +67,7 @@ const VARIANTES = {
     <circle cx="452" cy="712" r="80" fill="url(#plata)" filter="url(#glow)"/>
     <circle cx="668" cy="438" r="112" fill="${AMBAR}" filter="url(#glowA)"/>`,
 };
-const ELEGIDA = 'cuaderno';
+const ELEGIDA = 'grafo';   // Fran, 2/11/2026, entre las tres
 
 const svg = (v) => `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
   <defs>${defs}</defs>

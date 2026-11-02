@@ -12,6 +12,11 @@
    app (tools/retint.mjs --accent "255 180 84").
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ── La marca: el grafo del ícono. Las dos notas en el gris de la marca, la
+   abierta en ámbar y llena (Opal apaga el «fuego» al .34: acá no). ── */
+.op-brand__mark { color: var(--op-text-2); }
+.op-brand__mark .op-brand__trail { opacity: 1; stroke: rgb(255 180 84); fill: rgb(255 180 84 / .9); }
+
 /* ── El velo del acrílico ─────────────────────────────────────────────────────
    Opal trae el velo de abajo al 42 %, calcado del piso de UmbroSys, que ya es
    oscuro. Acá debajo está el escritorio de Windows, claro y con color: con 42
