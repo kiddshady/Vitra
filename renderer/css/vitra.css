@@ -12,6 +12,33 @@
    app (tools/retint.mjs --accent "255 180 84").
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ── El velo del acrílico ─────────────────────────────────────────────────────
+   Opal trae el velo de abajo al 42 %, calcado del piso de UmbroSys, que ya es
+   oscuro. Acá debajo está el escritorio de Windows, claro y con color: con 42
+   se mezcla. NTX lo midió sobre el escritorio real y Fran eligió 70 % («sigo
+   viendo a través pero no se me mezcla», 1/11/2026). LA perilla es
+   --vt-acrilico-velo; lo que flota (menús y avisos) va atado a ella para
+   oscurecerse lo mismo que el fondo: k = (1 − .42) / (1 − velo), y la base
+   sale de 1 − (1 − .244 · k) / .945 (la cuenta de opal-acrilico.css de NTX,
+   con los valores de Opal: base 20 %, luz s2 de .055). En .42 da el 20 %
+   de fábrica; en .70, 44 %. El modal y el tooltip ya son la hoja opaca. */
+:root {
+  --vt-acrilico-velo: .70;
+  --vt-velo-k: calc((1 - .42) / (1 - var(--vt-acrilico-velo)));
+}
+:root.vidrio-acrilico {
+  --op-flota-base: calc((1 - (1 - .244 * var(--vt-velo-k)) / .945) * 100%);
+  --op-flota-toast-base: var(--op-flota-base);
+}
+:root.vidrio-acrilico .op-fog {
+  background:
+    linear-gradient(var(--op-s2), var(--op-s2)),
+    linear-gradient(color-mix(in srgb, var(--op-bg) 20%, transparent), color-mix(in srgb, var(--op-bg) 20%, transparent)),
+    linear-gradient(var(--op-s1), var(--op-s1)),
+    var(--op-sustrato),
+    color-mix(in srgb, var(--op-bg) calc(var(--vt-acrilico-velo) * 100%), transparent);
+}
+
 /* los colores de los bloques de código (Prism): la paleta de la terminal de UmbroSys */
 .vt-md .token.comment, .vt-md .token.prolog, .vt-md .token.doctype { color: #84848c; font-style: italic; }
 .vt-md .token.keyword, .vt-md .token.boolean, .vt-md .token.important { color: #ce81e5; }
