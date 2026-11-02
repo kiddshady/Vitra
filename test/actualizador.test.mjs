@@ -126,5 +126,19 @@ falso.falla = new Error('ESOCKETTIMEDOUT');
 await upd.descargar();
 ok('la descarga fallida: descargando → error, una sola vez', fases() === 'descargando → error', fases());
 
+console.log('\n5. Autoupdate: lo nuevo se baja solo');
+{
+  const env2 = [];
+  const v2 = { isDestroyed: () => false, webContents: { send: (_c, e) => env2.push(e) } };
+  const f2 = new UpdaterFalso();
+  f2.hay = { version: '9.9.9', releaseName: 'Vitra 9.9.9', files: [{ size: 1234 }] };
+  upd.iniciar(() => v2, { empaquetada: true, portable: false, updater: f2, autoDescargar: true });
+  await upd.buscar({ manual: false });
+  await new Promise((r) => setTimeout(r, 20));
+  const f = env2.map((e) => e.fase).join(' → ');
+  ok('buscando → disponible → descargando → listo, sin que nadie toque nada', f === 'buscando → disponible → descargando → listo', f);
+  ok('y queda lista para entrar al cerrar', upd.leer().fase === 'listo' && upd.leer().version === '9.9.9');
+}
+
 console.log(`\n═══ ${pass} ok · ${fail} fallas ═══\n`);
 process.exit(fail ? 1 : 0);

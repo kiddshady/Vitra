@@ -7,9 +7,10 @@
    un `latest.yml` a cada release de GitHub, y `electron-updater` lo lee. La
    lista de versiones ES la lista de releases del repo.
 
-   Nada pasa sin que el usuario diga que sí. `autoDownload = false` a propósito:
-   el instalador pesa casi 100 MB y bajarlo de prepo, sin avisar, en la conexión
-   de otro, no está bien. Se busca solo; se baja cuando lo pedís.
+   En Tessera nada pasa sin que el usuario diga que sí. En Vitra, Fran lo
+   pidió automático (2/11/2026): `autoDescargar` hace que una versión nueva se
+   baje sola apenas aparece, y entra la próxima vez que se cierra la app
+   (autoInstallOnAppQuit). Reiniciar antes queda en el menú «Más».
 
    ── Dónde NO funciona ──────────────────────────────────────────────────────
    Y hay que decirlo en pantalla, no fallar en silencio:
@@ -104,6 +105,7 @@ function iniciar(getWin, {
   empaquetada = !!electronApp?.isPackaged,
   portable = !!process.env.PORTABLE_EXECUTABLE_FILE,
   updater = null,
+  autoDescargar = false,
 } = {}) {
   dameVentana = getWin;
   estado = { ...VACIO, actual: electronApp?.getVersion() || '' };
@@ -120,13 +122,17 @@ function iniciar(getWin, {
 
   autoUpdater.on('checking-for-update', () => fijar({ fase: 'buscando', error: '' }));
 
-  autoUpdater.on('update-available', (info) => fijar({
-    fase: 'disponible',
-    version: info?.version || null,
-    nombre: String(info?.releaseName || '').trim() || `Vitra ${info?.version || ''}`.trim(),
-    bytes: tamanoDe(info),
-    url: info?.version ? `${RELEASES}/tag/v${info.version}` : RELEASES,
-  }));
+  autoUpdater.on('update-available', (info) => {
+    fijar({
+      fase: 'disponible',
+      version: info?.version || null,
+      nombre: String(info?.releaseName || '').trim() || `Vitra ${info?.version || ''}`.trim(),
+      bytes: tamanoDe(info),
+      url: info?.version ? `${RELEASES}/tag/v${info.version}` : RELEASES,
+    });
+    // la descarga va después de que buscar() termine: no se encima con su promesa
+    if (autoDescargar) setImmediate(() => { descargar(); });
+  });
 
   autoUpdater.on('update-not-available', () => fijar({ fase: 'al-dia', version: null }));
 

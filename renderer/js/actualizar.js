@@ -1,9 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Vitra — las actualizaciones, en la cara
-   El main busca solo al rato de abrir (src/actualizador.cjs). Acá no se
-   interrumpe nada: si hay una versión nueva, un aviso, y lo demás vive en el
-   menú «Más» de la nota (diario.js lo pide con menuExtra). Bajarla lo decide
-   Fran; ya bajada, entra sola la próxima vez que cierre Vitra.
+   Autoupdate (Fran, 2/11/2026): el main busca al rato de abrir y cada 4
+   horas, y una versión nueva se baja sola (src/actualizador.cjs). Acá no se
+   interrumpe nada: un solo aviso cuando ya está bajada («entra al cerrar»),
+   y reiniciar antes vive en el menú «Más» de la nota (diario.js lo pide con
+   menuExtra).
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { Toast } from './overlays.js';
@@ -17,11 +18,9 @@ function alCambiar(s) {
   const antes = estado;
   estado = s;
   if (!s) return;
-  if (s.fase === 'disponible' && avisada !== s.version) {
+  if (s.fase === 'listo' && avisada !== s.version) {
     avisada = s.version;
-    Toast.show({ title: `Vitra ${s.version} está disponible`, text: `Se baja desde el menú «Más» de la nota${s.bytes ? ` (${fmtBytes(s.bytes)})` : ''}.`, icon: 'download' });
-  } else if (s.fase === 'listo' && antes?.fase !== 'listo') {
-    Toast.show({ title: `Vitra ${s.version || ''} está lista`.replace('  ', ' '), text: 'Entra sola cuando cierres Vitra, o reiniciá ahora desde «Más».', icon: 'check' });
+    Toast.show({ title: `Vitra ${s.version || ''} está lista`.replace('  ', ' '), text: 'Se bajó sola y entra cuando cierres Vitra. Para tenerla ya, reiniciá desde «Más».', icon: 'check' });
   } else if (s.manual && s.fase === 'al-dia' && antes?.fase === 'buscando') {
     Toast.show({ title: 'Estás al día', text: `Vitra ${s.actual} es la última.`, icon: 'check' });
   } else if (s.fase === 'error' && (s.manual || antes?.fase === 'descargando') && antes?.error !== s.error) {

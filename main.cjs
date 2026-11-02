@@ -299,9 +299,12 @@ app.whenReady().then(async () => {
   if (!unica) return;
   ipc.register();
   createWindow(await loadWindowState());
-  // Se busca solo, un rato después de abrir; bajar lo decide Fran (src/actualizador.cjs).
-  actualizador.iniciar(() => win);
+  /* Autoupdate (pedido de Fran, 2/11/2026): busca un rato después de abrir y
+     cada 4 horas, una versión nueva se baja sola y entra al cerrar Vitra
+     (src/actualizador.cjs). Reiniciar antes queda en el menú «Más». */
+  actualizador.iniciar(() => win, { autoDescargar: true });
   setTimeout(() => actualizador.buscar({ manual: false }), 6000);
+  setInterval(() => actualizador.buscar({ manual: false }), 4 * 60 * 60 * 1000);
 });
 
 app.on('window-all-closed', () => {
