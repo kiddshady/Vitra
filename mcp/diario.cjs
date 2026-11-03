@@ -2,9 +2,9 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Viper — el servidor MCP del Diario (nació en UmbroSys)
+   Quartz — el servidor MCP del Diario (nació en UmbroSys)
    El enchufe para que Claude Code lea, busque, cree y enlace notas del diario
-   de Fran (src/diario.cjs), con Viper o UmbroSys abiertos o cerrados. Es un
+   de Fran (src/diario.cjs), con Quartz o UmbroSys abiertos o cerrados. Es un
    programita que Claude Code arranca solo y le habla por stdin/stdout (JSON-RPC, un
    mensaje por renglón). Sin dependencias: node pelado.
 
@@ -145,7 +145,7 @@ async function atender(m) {
         return responder(id, {
           protocolVersion: params?.protocolVersion || '2025-06-18',
           capabilities: { tools: {} },
-          serverInfo: { name: 'diario', title: 'El Diario de Fran (Viper)', version: VERSION },
+          serverInfo: { name: 'diario', title: 'El Diario de Fran (Quartz)', version: VERSION },
           instructions: INSTRUCCIONES,
         });
       case 'ping':

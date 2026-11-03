@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Viper — el color de los bloques de código del markdown
+   Quartz — el color de los bloques de código del markdown
    Prism (renderer/vendor/prism.js) se carga la primera vez que hace falta,
    y hasta entonces los bloques salen planos. Recortado de la pantalla de
    coder de UmbroSys (piso/pantalla.js).

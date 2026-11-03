@@ -1,9 +1,9 @@
 'use strict';
 /* ═══════════════════════════════════════════════════════════════════════════
-   El ícono de Viper (el molde es el de UmbroSys, tools/icono.cjs).
+   El ícono de Quartz (el molde es el de UmbroSys, tools/icono.cjs).
 
-   El dibujo es uno solo, tools/marca.cjs: el ojo de víbora en el centro
-   de un grafo hexagonal (lo hizo Fran). Esto escribe:
+   El dibujo es uno solo, tools/marca.cjs: «El corte», las capas de un
+   cristal de cuarzo cortado de través (la eligió Fran). Esto escribe:
      · build/icon.png (1024, el maestro) y build/icon.ico (16 a 256): con la
        baldosa, cada tamaño dibujado desde el vector a su tamaño, el MISMO
        dibujo en todos, sin versiones simplificadas para los chicos;
@@ -92,8 +92,8 @@ app.whenReady().then(async () => {
   const pngs = [];
   for (const tam of TAMANOS) pngs.push({ tam, buf: await png(tam) });
   fs.writeFileSync(path.join(OUT, 'icon.ico'), ico(pngs));
-  ponerEnIndex('titlebar', marca({ baldosa: false, encuadre: ENCUADRE_SUELTO, id: 'vp-tb' }).replace('<svg ', '<svg class="vp-marca" aria-hidden="true" '));
-  ponerEnIndex('splash', marca({ baldosa: false, encuadre: ENCUADRE_SUELTO, id: 'vp-sp' }));
+  ponerEnIndex('titlebar', marca({ baldosa: false, encuadre: ENCUADRE_SUELTO, id: 'qz-tb' }).replace('<svg ', '<svg class="vp-marca" aria-hidden="true" '));
+  ponerEnIndex('splash', marca({ baldosa: false, encuadre: ENCUADRE_SUELTO, id: 'qz-sp' }));
   process.stdout.write(`${path.join(OUT, 'icon.png')} (1024)\n${path.join(OUT, 'icon.ico')} (${TAMANOS.join(', ')})\n${INDEX} (titlebar y splash)\n`);
   app.exit(0);
 });

@@ -1,7 +1,7 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Viper — el humo
+   Quartz — el humo
    Abre la app de verdad (main.cjs) sobre un diario y una carpeta de datos
    temporales, y la recorre como Fran: escribe la de hoy, enlaza otra con
    [[ ]], la abre desde el enlace, mira el grafo, y cambia una nota desde
@@ -18,6 +18,13 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'vitra-humo-'));
 const DIARIO = path.join(tmp, 'Diario');
 fs.mkdirSync(path.join(DIARIO, 'diario'), { recursive: true });
 fs.writeFileSync(path.join(DIARIO, 'Bienvenida.md'), '# Hola\n\nEsta nota ya estaba. Nombra a [[Biológica]].\n\n```js\nconst x = 1;\n```\n');
+// el mismo día del año pasado (el 29 de febrero cae en el 28), para «Hace un año, hoy»
+const ANIO = (() => {
+  const d = new Date(); const a = new Date(d.getFullYear() - 1, d.getMonth(), d.getDate());
+  if (a.getMonth() !== d.getMonth()) a.setDate(0);
+  return `${a.getFullYear()}-${String(a.getMonth() + 1).padStart(2, '0')}-${String(a.getDate()).padStart(2, '0')}`;
+})();
+fs.writeFileSync(path.join(DIARIO, 'diario', `${ANIO}.md`), '## 21:40\n\nRendí Química Biológica. Salí sin saber si me fue bien.\n');
 process.env.VITRA_DIARIO = DIARIO;
 process.env.VITRA_DATA = path.join(tmp, 'data');
 process.env.VITRA_VARIAS = '1';
@@ -73,9 +80,11 @@ async function correr() {
   ok('el splash se va', await hasta(win, `!document.getElementById('boot-splash')`, 3000));
   ok('las tres hojas', await js(win, `['.vt-diario__lado', '.vt-diario__hoja', '.vt-diario__panel'].every((s) => document.querySelector(s))`));
   ok('la ventana oscura: sin el vidrio acrílico', await js(win, `!document.documentElement.classList.contains('vidrio-acrilico')`));
-  ok('la marca sola en la titlebar: el ojo, sin el nombre', await js(win, `!!document.querySelector('.op-brand svg.vp-marca') && !document.querySelector('.op-brand__name') && document.querySelector('.op-brand svg.vp-marca').getBoundingClientRect().width === 22`));
-  ok('las escamas en el sustrato', await js(win, `getComputedStyle(document.querySelector('.op-fog')).backgroundImage.includes('156,230,80')`));
-  ok('el acento es el verde veneno', await js(win, `getComputedStyle(document.documentElement).getPropertyValue('--op-accent-rgb').trim() === '156 230 80'`));
+  ok('la marca sola en la titlebar: el corte, sin el nombre', await js(win, `!!document.querySelector('.op-brand svg.vp-marca') && document.querySelectorAll('.op-brand svg.vp-marca polygon').length === 6 && !document.querySelector('.op-brand__name') && document.querySelector('.op-brand svg.vp-marca').getBoundingClientRect().width === 22`));
+  ok('las capas del cristal en el sustrato', await js(win, `getComputedStyle(document.querySelector('.op-fog')).backgroundImage.includes('255%2C184%2C64')`), await js(win, `getComputedStyle(document.querySelector('.op-fog')).backgroundImage.slice(0, 400)`));
+  ok('el acento es el ámbar citrino', await js(win, `getComputedStyle(document.documentElement).getPropertyValue('--op-accent-rgb').trim() === '255 184 64'`));
+  ok('hace un año, hoy: la nota del año pasado arriba en el panel', await hasta(win, `document.querySelector('.vt-diario__anio')?.classList.contains('is-hay') && document.querySelector('.vt-diario__anio').textContent.includes('Rendí Química Biológica')`));
+  ok('la tinta envejece: la nota de hace un año, más gris que la de hoy', await hasta(win, `(() => { const v = document.querySelector('.vt-diario__item[data-id="diario/${ANIO}"]'); return v && Number(v.style.getPropertyValue('--vt-edad')) > .99 && getComputedStyle(v.querySelector('.vt-diario__nom')).color !== getComputedStyle(document.querySelector('.vt-diario__item.is-activo .vt-diario__nom') || v.querySelector('.vt-diario__nom')).color; })()`));
   ok('la nota abierta lleva la luz en el canto', await hasta(win, `!!document.querySelector('.vt-diario__item.is-activo') && getComputedStyle(document.querySelector('.vt-diario__item.is-activo'), '::after').opacity === '1'`));
   ok('sin statusbar', await js(win, `document.querySelector('.op-app').classList.contains('sin-statusbar')`));
   ok('la nota que había, en la lista', await hasta(win, `[...document.querySelectorAll('.vt-diario__item')].some((b) => b.textContent.includes('Bienvenida'))`));
@@ -120,6 +129,7 @@ async function correr() {
   ok('  pero escribir al final es una entrada nueva, con su hora', ((await js(win, `document.querySelector('.vt-diario__editor').value`)).match(/^## \d{2}:\d{2}$/gm) || []).length === 2 && /## \d{2}:\d{2}\n\nOtra cosa\.$/.test(await js(win, `document.querySelector('.vt-diario__editor').value`)), await js(win, `document.querySelector('.vt-diario__editor').value`));
   await teclas(win, ['Control+E']);
   ok('  y de vuelta a leer', await hasta(win, `!document.querySelector('.vt-diario__hoja').classList.contains('is-escribir')`));
+  ok('  en la de hoy, la última hora late (y la primera no)', await hasta(win, `(() => { const h = [...document.querySelectorAll('.vt-md h2.md-hora')]; return h.length === 2 && document.querySelector('.vt-diario__hoja').classList.contains('is-hoy') && getComputedStyle(h[1], '::before').animationName === 'vt-latido' && getComputedStyle(h[0], '::before').animationName === 'none'; })()`));
   await espera(700);
   await foto(win, '2b-horas');
   await js(win, `document.querySelector('.vt-md .md-wiki')?.click()`);
@@ -160,7 +170,7 @@ async function correr() {
   ok('el ícono está en la bandeja', bandeja.existe());
   win.close();
   await espera(300);
-  ok('la X esconde la ventana, no cierra Viper', !win.isDestroyed() && !win.isVisible());
+  ok('la X esconde la ventana, no cierra Quartz', !win.isDestroyed() && !win.isVisible());
   app.emit('second-instance');
   await espera(300);
   ok('abrirla otra vez la trae de vuelta', !win.isDestroyed() && win.isVisible());

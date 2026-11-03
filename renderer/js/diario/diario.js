@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Viper — el Diario de Fran
+   Quartz — el Diario de Fran
    Nació adentro de UmbroSys (1.20.0, 1/11/2026: diseño de Fran con Sam, la
    variante híbrida) y se mudó a esta app suelta el 2/11/2026. Las notas son
    los .md de S:\Diario (src/diario.cjs): esta ventana es solo la cara, y
@@ -55,6 +55,22 @@ function nombreDia(f, { largo = true } = {}) {
 }
 const tituloDe = (n) => (n.dia ? nombreDia(n.dia) : n.titulo);
 
+/* La edad de una nota, de 0 (hoy) a 1 (un año o más), en escala logarítmica: entre
+   ayer y hace una semana se nota más que entre marzo y abril. Con esto la tinta de la
+   lista se apaga de a poco (vitra.css, «la tinta que envejece»). */
+function edadDe(f) {
+  if (!esFecha(f)) return 0;
+  const dias = Math.max(0, (Date.now() - new Date(`${f}T12:00:00`)) / 86400e3);
+  return Math.min(1, Math.log1p(dias) / Math.log1p(365));
+}
+/** El mismo día del año pasado (el 29 de febrero cae en el 28). */
+function haceUnAnio() {
+  const d = new Date();
+  const a = new Date(d.getFullYear() - 1, d.getMonth(), d.getDate());
+  if (a.getMonth() !== d.getMonth()) a.setDate(0);
+  return `${a.getFullYear()}-${dos(a.getMonth() + 1)}-${dos(a.getDate())}`;
+}
+
 /**
  * Arma el Diario adentro de `raiz` (el cuerpo de su ventana).
  * @param {{ menuExtra?: () => object[] }} [opciones]  menuExtra: ítems de la app para el menú «Más»
@@ -93,6 +109,9 @@ export function montarDiario(raiz, { menuExtra = null } = {}) {
       </div>
     </section>
     <aside class="vt-diario__panel">
+      <div class="vt-diario__sec vt-diario__anio">
+        <div><div class="vt-diario__sectit">Hace un año, hoy</div><div class="vt-diario__aniocuerpo"></div></div>
+      </div>
       <div class="vt-diario__sec">
         <div class="vt-diario__sectit">Te nombran <span class="vt-diario__cuenta"></span></div>
         <div class="vt-diario__back op-scroll"></div>
@@ -117,6 +136,8 @@ export function montarDiario(raiz, { menuExtra = null } = {}) {
   const back = $('.vt-diario__back');
   const cuentaBack = $('.vt-diario__cuenta');
   const modoBtn = $('.vt-diario__modo');
+  const anio = $('.vt-diario__anio');
+  const anioCuerpo = $('.vt-diario__aniocuerpo');
 
   let notas = [];                 // las metas, de la más nueva a la más vieja
   let existen = new Set();        // claves de títulos (y fechas) que existen, para los [[ ]]
@@ -147,6 +168,7 @@ export function montarDiario(raiz, { menuExtra = null } = {}) {
     if (q) await correrBusqueda();
     pintarLista();
     pintarGrafos();
+    pintarAnio();
     if (actual) pintarBack();
   }
   const existe = (t) => existen.has(clave(t)) || (clave(t) === 'hoy' && existen.has(hoyEs()));
@@ -183,7 +205,7 @@ export function montarDiario(raiz, { menuExtra = null } = {}) {
   }
   function itemHtml(n, sub) {
     const activo = actual?.id === n.id;
-    return `<button type="button" class="vt-diario__item${activo ? ' is-activo' : ''}${n.dia ? ' is-dia' : ''}" role="option" aria-selected="${activo}" data-id="${esc(n.id)}">
+    return `<button type="button" class="vt-diario__item${activo ? ' is-activo' : ''}${n.dia ? ' is-dia' : ''}" role="option" aria-selected="${activo}" data-id="${esc(n.id)}" style="--vt-edad: ${edadDe(n.dia || n.fecha).toFixed(3)}">
       <span class="vt-diario__ico" aria-hidden="true">${n.dia ? `<b>${esc(String(Number(n.dia.slice(8))))}</b>` : Icons.svg('file')}</span>
       <span class="vt-diario__txt">
         <span class="vt-diario__fila"><span class="vt-diario__nom">${esc(n.dia ? nombreDia(n.dia, { largo: true }).replace(/^(Hoy|Ayer), /, '$1 · ') : n.titulo)}</span>${n.dia ? '' : `<span class="vt-diario__cuando">${esc(nombreDia(n.fecha, { largo: false }))}</span>`}</span>
@@ -292,6 +314,7 @@ export function montarDiario(raiz, { menuExtra = null } = {}) {
     const hay = !!actual;
     hoja.classList.toggle('is-vacia', !hay && !enGrafo);
     hoja.classList.toggle('is-escribir', hay && modo === 'escribir');
+    hoja.classList.toggle('is-hoy', hay && actual.dia === hoyEs());   // el latido de la última hora
     modoBtn.classList.toggle('is-b', modo === 'escribir');
     const tipModo = modo === 'escribir' ? 'Leer (Ctrl+E)' : 'Escribir (Ctrl+E)';
     modoBtn.dataset.tip = tipModo; modoBtn.setAttribute('aria-label', tipModo.replace(/ \(.*/, ''));
@@ -481,6 +504,32 @@ export function montarDiario(raiz, { menuExtra = null } = {}) {
     initScrollFades(back.parentElement);
   }
   back.addEventListener('click', (e) => { const b = e.target.closest('[data-id]'); if (b) abrir(b.dataset.id); });
+
+  /* ── Hace un año, hoy ────────────────────────────────────────────────────
+     Arriba en el panel, la nota del mismo día del año pasado, si existe y no
+     está vacía: la fecha y sus primeros renglones (sin las horas). La sección
+     siempre está en el DOM; se abre y se cierra con .is-hay (vitra.css). */
+  let anioVisto = '';
+  async function pintarAnio() {
+    const f = haceUnAnio();
+    const n = notas.find((x) => x.dia === f && !x.vacia);
+    const llave = n ? `${n.id}:${n.hash}` : '';
+    if (llave === anioVisto) return;
+    anioVisto = llave;
+    if (!n) { anio.classList.remove('is-hay'); return; }
+    const nota = await api.leer(n.id).catch(() => null);
+    if (!vivo || anioVisto !== llave) return;
+    if (!nota) { anio.classList.remove('is-hay'); return; }
+    const renglones = sinFrontmatter(nota.texto).split('\n').map((r) => r.trim())
+      .filter((r) => r && !/^#{1,6}\s/.test(r)).slice(0, 2)
+      .map((r) => r.replace(/\[\[([^\]|]+\|)?([^\]]+)\]\]/g, '$2').replace(/[*_`>]/g, '').replace(/^[-+]\s+(\[[ x]\]\s+)?/i, ''));
+    const fecha = new Date(`${f}T12:00:00`).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+    anioCuerpo.innerHTML = `<button type="button" class="vt-diario__bl" data-id="${esc(n.id)}">
+      <span class="vt-diario__blnom">${esc(fecha)}</span>
+      ${renglones.map((r) => `<span class="vt-diario__blren">${esc(r)}</span>`).join('')}</button>`;
+    anio.classList.add('is-hay');
+  }
+  anio.addEventListener('click', (e) => { const b = e.target.closest('[data-id]'); if (b) abrir(b.dataset.id); });
 
   // en el grafo, los días se nombran como en la lista («hoy», «31 oct»), no por su archivo
   const paraGrafo = () => ({ ...grafo, nodos: grafo.nodos.map((n) => (n.dia ? { ...n, titulo: nombreDia(n.dia, { largo: false }) } : n)) });

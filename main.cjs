@@ -1,11 +1,11 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   VIPER — proceso principal
+   QUARTZ — proceso principal
    El Diario de Fran como app suelta (nació en UmbroSys 1.20.0). Se llamó
-   Vitra hasta la 0.1.x; desde la 0.2.0 es Viper, sobre la plantilla Opal en
-   la variante oscura. Lo de abajo es el arranque sin flash de Opal; lo propio
-   de Viper está al final: el diario (src/diario.cjs) y sus canales.
+   Vitra hasta la 0.1.x y Viper de la 0.2 a la 0.4; desde la 0.5.0 es Quartz,
+   sobre la plantilla Opal en la variante oscura. Lo de abajo es el arranque
+   sin flash de Opal; lo propio de Quartz está al final: el diario (src/diario.cjs) y sus canales.
 
    Acá pasa lo único de una app Electron que no se puede resolver con CSS: que
    la ventana aparezca SIN un solo frame blanco.
@@ -39,8 +39,9 @@
 const { app, BrowserWindow, ipcMain, nativeTheme, screen, shell } = require('electron');
 const path = require('path');
 
-/* Viper se llamó Vitra hasta la 0.1.x, y con el productName cambia la carpeta
-   de datos: %APPDATA%\Vitra → %APPDATA%\Viper. Quien viene de Vitra se muda
+/* Quartz se llamó Vitra hasta la 0.1.x y Viper hasta la 0.4.x, y con el
+   productName cambia la carpeta de datos: %APPDATA%\Viper (o \Vitra) →
+   %APPDATA%\Quartz. Quien viene de un nombre viejo se muda
    al arrancar, renombrando la carpeta entera; si no se puede, esta vez usa la
    vieja (src/carpeta.cjs). Va antes de cargar el store, que calcula su raíz
    al requerirse, y antes de que Chromium escriba nada en userData. En
@@ -71,7 +72,7 @@ const BG = '#0a0a0a';
    va forzado a oscuro porque el acrílico sigue al de Windows: en modo claro
    sería blanco. Sin foco, Windows lo cambia por un gris liso: src/vidrio.cjs
    se lo devuelve con WM_NCACTIVATE, como Moji.
-   Vitra nacía acrílica; Viper nace OSCURA (Fran, 3/11/2026): la ventana es
+   Vitra nacía acrílica; Viper y Quartz son OSCURAS (Fran, 3/11/2026): la ventana es
    opaca y el vidrio queda apagado. La receta sigue acá por si vuelve. */
 const CLEAR = '#00000000';
 let acrilico = false;
@@ -228,7 +229,7 @@ function createWindow(state) {
   /* Apagar, reiniciar o cerrar la sesión de Windows no pasa por la cruz:
      Windows avisa y después puede cortar. Lo tuyo que quede pendiente (un
      borrador con debounce) va acá también, con writeSync. */
-  // La X esconde (Viper queda en la bandeja), salvo que se esté saliendo de verdad.
+  // La X esconde (Quartz queda en la bandeja), salvo que se esté saliendo de verdad.
   win.on('close', (e) => {
     flushWindowState();
     if (saliendo) return;
@@ -306,7 +307,7 @@ deDiario('diario:papelera', (ref) => diario.aPapelera(txt(ref)));
 deDiario('diario:abrir-carpeta', async () => { const err = await shell.openPath(diario.dir); if (err) throw new Error(err); return true; });
 app.on('before-quit', () => diario.cerrar());
 
-/* ── Una sola Viper ──────────────────────────────────────────────────────────
+/* ── Una sola Quartz ──────────────────────────────────────────────────────────
    Dos ventanas sobre la misma carpeta no se pisan (el guardado con base lo
    evita), pero se confunde cuál es cuál: la segunda trae la primera adelante. */
 const unica = process.env.VITRA_VARIAS === '1' || app.requestSingleInstanceLock();
@@ -322,13 +323,13 @@ function mostrar() {
 app.on('second-instance', mostrar);
 
 /* ── La bandeja (pedido de Fran, 3/11/2026) ──────────────────────────────────
-   La X esconde la ventana y Viper sigue en la bandeja (src/bandeja.cjs). Eso
+   La X esconde la ventana y Quartz sigue en la bandeja (src/bandeja.cjs). Eso
    convierte al cierre en algo que hay que poder DESACTIVAR, porque si no la
    app no se muere nunca: `saliendo` es esa llave, y la levantan los cierres
    de verdad: «Salir» en la bandeja, un reinicio para actualizar
    (quitAndInstall pasa por before-quit) y Windows apagándose. Como la X ya
    no cierra, la actualización bajada entra al salir desde la bandeja, al
-   apagar la PC o desde «Reiniciar con Viper X» en el menú «Más». */
+   apagar la PC o desde «Reiniciar con Quartz X» en el menú «Más». */
 app.on('before-quit', () => { saliendo = true; });
 app.on('will-quit', () => bandeja.destruir());
 
@@ -338,7 +339,7 @@ app.whenReady().then(async () => {
   createWindow(await loadWindowState());
   bandeja.crear({ mostrar, salir: () => { saliendo = true; app.quit(); } });
   /* Autoupdate (pedido de Fran, 2/11/2026): busca un rato después de abrir y
-     cada 4 horas, una versión nueva se baja sola y entra al cerrar Viper
+     cada 4 horas, una versión nueva se baja sola y entra al cerrar Quartz
      (src/actualizador.cjs). Reiniciar antes queda en el menú «Más». */
   actualizador.iniciar(() => win, { autoDescargar: true });
   setTimeout(() => actualizador.buscar({ manual: false }), 6000);

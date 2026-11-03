@@ -1,11 +1,11 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Viper — la bandeja del sistema (el molde es el de Apex, src/bandeja.cjs)
+   Quartz — la bandeja del sistema (el molde es el de Apex, src/bandeja.cjs)
 
    El ícono al lado del reloj (pedido de Fran, 3/11/2026). Existe mientras la
    app corre, y es lo que hace que cerrar la ventana no sea lo mismo que
-   cerrar Viper: la X esconde, y desde acá se vuelve.
+   cerrar Quartz: la X esconde, y desde acá se vuelve.
 
    El menú es NATIVO (lo pinta Windows, no nosotros), así que es el único
    lugar de la app donde no mandan nuestros estilos. Por eso tiene lo mínimo:
@@ -32,16 +32,16 @@ function icono() {
 }
 
 /**
- * Crea el ícono. `mostrar` trae la ventana al frente; `salir` termina Viper
+ * Crea el ícono. `mostrar` trae la ventana al frente; `salir` termina Quartz
  * de verdad (con la X escondiendo, este menú es el lugar para eso). Llamarla
  * dos veces no crea dos íconos.
  */
 function crear({ mostrar, salir }) {
   if (tray) return tray;
   tray = new Tray(icono());
-  tray.setToolTip(`Viper ${app.getVersion()}`);
+  tray.setToolTip(`Quartz ${app.getVersion()}`);
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: 'Abrir Viper', click: mostrar },
+    { label: 'Abrir Quartz', click: mostrar },
     { type: 'separator' },
     { label: 'Salir', click: salir },
   ]));

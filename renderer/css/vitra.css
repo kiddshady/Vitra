@@ -1,46 +1,56 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   VIPER — la piel del Diario
-   (el archivo y el prefijo vt- son de cuando se llamaba Vitra, hasta la 0.1)
+   QUARTZ — la piel del Diario
+   (el archivo y el prefijo vt- son de cuando se llamaba Vitra, hasta la 0.1;
+   de la 0.2 a la 0.4 fue Viper, con piel de víbora)
 
-   Opal en la variante OSCURA (Fran, 3/11/2026: deja el acrílico): la ventana
-   es opaca y adentro flotan tres hojas, la lista, la nota y quién la nombra,
-   con aire entre ellas (--op-gutter) y ninguna línea. Lo que hace que sea
-   Viper y no otra app de la familia, con los detalles de Praxio llevados a la
-   víbora (elegido en la maqueta S:\mockups\viper):
+   Opal en la variante OSCURA: la ventana es opaca y adentro flotan tres
+   hojas, la lista, la nota y quién la nombra, con aire entre ellas
+   (--op-gutter) y ninguna línea. Lo que hace que sea Quartz, elegido por Fran
+   en la maqueta S:\mockups\quartz (3/11/2026):
 
-     · el sustrato son escamas con quilla, en el verde apenas (al 55 % de la
-       perilla de la maqueta), debajo de la niebla: el papel de electro de
-       Praxio;
-     · la niebla junta luz, verde y un poco del ámbar del ojo;
-     · el acento es el verde del veneno (tools/retint.mjs --accent "156 230 80");
-     · la marca es el ícono de verdad (el ojo en el grafo hexagonal, de Fran), sin baldosa y sin el
-       nombre al lado: la escribe npm run icon en el index;
+     · el acento es el ámbar citrino (tools/retint.mjs --accent "255 184 64");
+     · el sustrato son las capas del cristal: un panal de hexágonos donde cada
+       celda guarda adentro su fantasma (la forma que tuvo antes de crecer),
+       en ámbar apenas (al 55 % de la perilla de la maqueta), debajo de la
+       niebla;
+     · la niebla junta el ámbar, una luz tibia y un poco de gris humo;
+     · la marca es «El corte» (las capas del cristal cortado de través), sin
+       baldosa y sin el nombre al lado: la escribe npm run icon en el index;
+     · el tiempo se ve: la tinta de la lista se apaga con la edad de cada
+       nota, la última hora de hoy late una vez por segundo, y el panel trae
+       lo que se escribió el mismo día del año pasado;
      · la nota abierta lleva una luz en el canto izquierdo (el rail de
-       Praxio) y el h1 de una nota, una quilla verde.
+       Praxio) y el h1 de una nota, una punta de cristal.
 
-   El cromo no tiene color: si algo es verde, es un canto, una línea o un
-   punto; si es ámbar, pide atención; si es rojo, falló.
+   El cromo no tiene color: si algo es ámbar, es un canto, una línea o un
+   punto. Como el ámbar es el acento, lo que pide atención va en rosa; si es
+   rojo, falló.
 
    Lo de abajo se trajo de UmbroSys (umbro.css, 1.22.0) cambiando us- por vt-:
    el markdown, los colores del código, el Diario y el grafo.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-:root { --vp-ambar-rgb: 255 184 64; }
+:root {
+  --qz-alerta-rgb: 240 128 120;   /* pide atención */
+  --qz-viejo: 128 120 110;        /* el gris tibio al que va la tinta vieja */
+  --qz-k: .45;                    /* cuánto se apaga la tinta de una nota de un año */
+}
 
-/* ── El sustrato: grano, velo parejo, escamas con quilla y la niebla ──────────
-   El azulejo de las escamas lleva el verde escrito (156 230 80 a .061): si
-   cambia el acento, cambia acá también. Va debajo del velo, como la grilla de
-   Praxio. En :root también: el calco del cambio de vista usa la misma niebla. */
+/* ── El sustrato: grano, velo parejo, las capas del cristal y la niebla ───────
+   El azulejo del panal lleva el ámbar escrito (255 184 64 a .066 la celda y
+   a .040 el fantasma): si cambia el acento, cambia acá también. Va debajo del
+   velo, como la grilla de Praxio. En :root también: el calco del cambio de
+   vista usa la misma niebla. */
 :root,
 .op-app {
   --op-sustrato:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E"),
-    linear-gradient(rgb(6 9 7 / .3), rgb(6 9 7 / .3)),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='20'%3E%3Cpath d='M0 0a14 10 0 0 0 28 0M-14 10a14 10 0 0 0 28 0M14 10a14 10 0 0 0 28 0M0 20a14 10 0 0 0 28 0M14 2.2v5.6M0 12.2v5.6M28 12.2v5.6' fill='none' stroke='rgba(156,230,80,0.061)' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") 0 0 / 28px 20px,
-    radial-gradient(46vw 46vw at 8% 0%, rgb(var(--op-accent-rgb) / calc(.075 * var(--op-fog))), transparent 70%),
-    radial-gradient(42vw 42vw at 94% 14%, rgb(255 255 255 / calc(.045 * var(--op-fog))), transparent 70%),
-    radial-gradient(38vw 38vw at 86% 106%, rgb(var(--vp-ambar-rgb) / calc(.04 * var(--op-fog))), transparent 70%),
-    radial-gradient(40vw 40vw at 28% 110%, rgb(40 160 120 / calc(.05 * var(--op-fog))), transparent 70%);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E"),
+    linear-gradient(rgb(9 8 6 / .34), rgb(9 8 6 / .34)),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'66.00'%20height%3D'38.11'%3E%3Cpath%20d%3D'M22.00%200.00L11.00%2019.05L-11.00%2019.05L-22.00%200.00L-11.00%20-19.05L11.00%20-19.05ZM88.00%200.00L77.00%2019.05L55.00%2019.05L44.00%200.00L55.00%20-19.05L77.00%20-19.05ZM22.00%2038.11L11.00%2057.16L-11.00%2057.16L-22.00%2038.11L-11.00%2019.05L11.00%2019.05ZM88.00%2038.11L77.00%2057.16L55.00%2057.16L44.00%2038.11L55.00%2019.05L77.00%2019.05ZM55.00%2019.05L44.00%2038.11L22.00%2038.11L11.00%2019.05L22.00%200.00L44.00%200.00Z'%20fill%3D'none'%20stroke%3D'rgba(255%2C184%2C64%2C0.066)'%20stroke-width%3D'1'%2F%3E%3Cpath%20d%3D'M11.00%200.00L5.50%209.53L-5.50%209.53L-11.00%200.00L-5.50%20-9.53L5.50%20-9.53ZM77.00%200.00L71.50%209.53L60.50%209.53L55.00%200.00L60.50%20-9.53L71.50%20-9.53ZM11.00%2038.11L5.50%2047.63L-5.50%2047.63L-11.00%2038.11L-5.50%2028.58L5.50%2028.58ZM77.00%2038.11L71.50%2047.63L60.50%2047.63L55.00%2038.11L60.50%2028.58L71.50%2028.58ZM44.00%2019.05L38.50%2028.58L27.50%2028.58L22.00%2019.05L27.50%209.53L38.50%209.53Z'%20fill%3D'none'%20stroke%3D'rgba(255%2C184%2C64%2C0.040)'%20stroke-width%3D'1'%2F%3E%3C%2Fsvg%3E") 0 0 / 66.00px 38.11px,
+    radial-gradient(48vw 48vw at 6% -4%, rgb(var(--op-accent-rgb) / calc(.085 * var(--op-fog))), transparent 70%),
+    radial-gradient(40vw 40vw at 96% 10%, rgb(255 244 228 / calc(.04 * var(--op-fog))), transparent 70%),
+    radial-gradient(44vw 44vw at 88% 108%, rgb(120 128 150 / calc(.05 * var(--op-fog))), transparent 70%),
+    radial-gradient(36vw 36vw at 24% 112%, rgb(var(--op-accent-rgb) / calc(.04 * var(--op-fog))), transparent 70%);
 }
 
 /* ── La marca: el dibujo solo, a 22 px, sin el nombre ── */
@@ -110,13 +120,23 @@
 .vt-md p { margin: 0 0 .8em; }
 .vt-md :is(h1, h2, h3, h4, h5, h6) { margin: 1.5em 0 .5em; color: var(--op-text); font-weight: var(--op-w-semi); line-height: 1.3; letter-spacing: var(--op-track-tight); }
 .vt-md h1 { position: relative; font-size: 19px; }
-/* la quilla: una rayita verde antes del título de una nota */
-.vt-md h1::before { content: ''; position: absolute; left: -14px; top: .36em; width: 3px; height: .8em; border-radius: 2px; background: linear-gradient(var(--op-accent), rgb(var(--op-accent-rgb) / .2)); }
+/* la punta: una punta de cristal en ámbar antes del título de una nota */
+.vt-md h1::before { content: ''; position: absolute; left: -16px; top: .3em; width: 7px; height: .86em; background: linear-gradient(var(--op-accent), rgb(var(--op-accent-rgb) / .25)); clip-path: polygon(50% 0, 100% 26%, 100% 100%, 0 100%, 0 26%); }
 .vt-md h2 { font-size: var(--op-fs-15); }
-/* la hora de una entrada del día («## 14:32»): chica, en la mono y en el verde, con una
+/* la hora de una entrada del día («## 14:32»): chica, en la mono y en el ámbar, con una
    luz como la de la nota abierta. Entre dos entradas, el aire de un título. */
 .vt-md h2.md-hora { display: flex; align-items: center; gap: 8px; margin: 1.7em 0 .5em; font: var(--op-w-semi) var(--op-fs-12) / 1.3 var(--op-mono); letter-spacing: .02em; font-variant-numeric: tabular-nums; color: rgb(var(--op-accent-rgb) / .92); }
 .vt-md h2.md-hora::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--op-accent); box-shadow: 0 0 8px rgb(var(--op-accent-rgb) / .7); }
+/* el latido: en la nota de hoy, el punto de la última hora late una vez por segundo.
+   El cuarzo de un reloj vibra 32 768 veces por segundo; el circuito lo divide hasta
+   llegar a uno. diario.js pone .is-hoy en la hoja cuando la nota abierta es la de hoy. */
+@keyframes vt-latido {
+  0%   { transform: scale(1.35); box-shadow: 0 0 12px rgb(var(--op-accent-rgb) / .95); }
+  35%  { transform: scale(1);    box-shadow: 0 0 6px rgb(var(--op-accent-rgb) / .5); }
+  100% { transform: scale(1);    box-shadow: 0 0 4px rgb(var(--op-accent-rgb) / .3); }
+}
+.vt-diario__hoja.is-hoy .vt-md h2.md-hora:last-of-type::before { animation: vt-latido 1s cubic-bezier(.2, .7, .3, 1) infinite; }
+@media (prefers-reduced-motion: reduce) { .vt-diario__hoja.is-hoy .vt-md h2.md-hora::before { animation: none; } }
 .vt-md h3 { font-size: var(--op-fs-13); }
 .vt-md :is(h4, h5, h6) { font-size: var(--op-fs-12); color: var(--op-text-2); }
 .vt-md strong { color: var(--op-text); font-weight: var(--op-w-semi); }
@@ -148,7 +168,7 @@
    Hojas flotantes con aire entre ellas, sin líneas y sin blur (la ventana
    ya es el vidrio). La lista a la izquierda, la nota en el medio
    y quién la nombra con su grafo chico a la derecha. Su detalle de color es el
-   verde del acento: la nota abierta en el grafo, el cursor y
+   ámbar del acento: la nota abierta en el grafo, el cursor y
    los enlaces. Con la ventana angosta se va el panel de la derecha. */
 .vt-diario {
   --vt-acento: var(--op-accent-rgb);
@@ -199,6 +219,14 @@
 .vt-diario__fila { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
 .vt-diario__nom { flex: 1; min-width: 0; font-size: var(--op-fs-12); font-weight: var(--op-w-medium); color: var(--op-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color var(--op-t-2) var(--op-ease-soft); }
 .vt-diario__item.is-activo .vt-diario__nom { color: var(--op-text); }
+/* la tinta que envejece: diario.js le pone a cada ítem su --vt-edad (0 = hoy, 1 = un
+   año o más, en escala logarítmica) y el nombre y el número del día se mezclan hacia un
+   gris tibio. Por color y no por opacidad, para que el texto no pierda ClearType. Al
+   pasar el mouse o abrirla vuelve; el cambio lo funde la transición de color de arriba. */
+.vt-diario__item { --vt-edad: 0; }
+.vt-diario__item:not(:hover):not(.is-activo) :is(.vt-diario__nom, .vt-diario__ico b) {
+  color: color-mix(in oklab, var(--op-text-2) calc(100% - var(--vt-edad) * var(--qz-k) * 100%), rgb(var(--qz-viejo)));
+}
 .vt-diario__cuando { flex: none; font: var(--op-fs-10) var(--op-mono); color: var(--op-text-3); }
 .vt-diario__res { font-size: var(--op-fs-11); color: var(--op-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .vt-diario__res.is-vacia { color: var(--op-text-4); }
@@ -214,7 +242,7 @@
 .vt-diario__chip { padding: 1px 7px; border-radius: var(--op-r-pill); background: var(--op-wash-1); box-shadow: inset 0 0 0 1px var(--op-line-2); color: var(--op-text-2); }
 .vt-diario__ruta { font-family: var(--op-mono); font-size: var(--op-fs-10); color: var(--op-text-4); user-select: text; }
 .vt-diario__estado { display: inline-grid; flex: none; align-self: flex-start; margin-top: 6px; font-size: var(--op-fs-11); color: var(--op-text-4); white-space: nowrap; transition: color var(--op-t-2) var(--op-ease-soft); }
-.vt-diario__estado.is-afuera { color: rgb(var(--vp-ambar-rgb) / .9); }   /* pide atención: ámbar */
+.vt-diario__estado.is-afuera { color: rgb(var(--qz-alerta-rgb) / .9); }   /* pide atención: rosa (el ámbar es el acento) */
 .vt-diario__estado.is-error { color: var(--op-danger, #ff6b6b); }
 .vt-diario__acciones { flex: none; display: flex; gap: 2px; padding-top: 2px; }
 .vt-diario__acciones .op-iconbtn { transition: var(--tr-color), opacity var(--op-t-2) var(--op-ease-soft); }
@@ -280,8 +308,18 @@
 .vt-diario__sug.is-nueva .op-icon { color: rgb(var(--vt-acento)); }
 
 /* el panel: quién la nombra y el grafo chico */
-.vt-diario__panel { display: grid; grid-template-rows: minmax(0, 1fr) minmax(170px, 46%); }
+.vt-diario__panel { display: grid; grid-template-rows: auto minmax(0, 1fr) minmax(170px, 46%); }
 .vt-diario__sec { min-height: 0; display: flex; flex-direction: column; }
+/* Hace un año, hoy: arriba en el panel, la nota del mismo día del año pasado. La
+   sección siempre está; se abre y se cierra por su fila (0fr ↔ 1fr) y por opacidad. */
+.vt-diario__anio { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows var(--op-t-3) var(--op-ease), opacity var(--op-t-2) var(--op-ease-soft); }
+.vt-diario__anio.is-hay { grid-template-rows: 1fr; opacity: 1; }
+.vt-diario__anio > div { min-height: 0; overflow: hidden; }
+.vt-diario__aniocuerpo { padding: 0 8px 6px; }
+.vt-diario__anio .vt-diario__bl { width: 100%; }
+.vt-diario__anio .vt-diario__blnom { display: flex; align-items: center; gap: 7px; }
+.vt-diario__anio .vt-diario__blnom::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: rgb(var(--op-accent-rgb) / .8); box-shadow: 0 0 8px rgb(var(--op-accent-rgb) / .5); }
+.vt-diario__anio .vt-diario__blren { -webkit-line-clamp: 3; }
 .vt-diario__sectit { flex: none; display: flex; align-items: baseline; gap: 6px; padding: 14px 14px 6px; font-size: var(--op-fs-10); font-weight: var(--op-w-semi); letter-spacing: .06em; text-transform: uppercase; color: var(--op-text-4); }
 .vt-diario__cuenta { font-family: var(--op-mono); letter-spacing: 0; color: var(--op-text-3); }
 .vt-diario__back { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 8px; --op-fade: 12px; }

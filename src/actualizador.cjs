@@ -7,7 +7,7 @@
    un `latest.yml` a cada release de GitHub, y `electron-updater` lo lee. La
    lista de versiones ES la lista de releases del repo.
 
-   En Tessera nada pasa sin que el usuario diga que sí. En Viper, Fran lo
+   En Tessera nada pasa sin que el usuario diga que sí. En Quartz, Fran lo
    pidió automático (2/11/2026): `autoDescargar` hace que una versión nueva se
    baje sola apenas aparece, y entra la próxima vez que se cierra la app
    (autoInstallOnAppQuit). Reiniciar antes queda en el menú «Más».
@@ -46,7 +46,7 @@ const RELEASES = 'https://github.com/kiddshady/Vitra/releases';
  */
 function soporte({ empaquetada = false, portable = false } = {}) {
   if (!empaquetada) {
-    return { ok: false, motivo: 'Estás corriendo Viper desde el código fuente. Acá no hay nada que actualizar: usá git.' };
+    return { ok: false, motivo: 'Estás corriendo Quartz desde el código fuente. Acá no hay nada que actualizar: usá git.' };
   }
   if (portable) {
     return { ok: false, motivo: 'La versión portable no se actualiza sola: es un solo archivo que dejaste donde quisiste. Bajate el ejecutable nuevo y reemplazá el que tenés.' };
@@ -116,7 +116,7 @@ function iniciar(getWin, {
   autoUpdater = updater || require('electron-updater').autoUpdater;
   autoUpdater.autoDownload = false;
   /* Si nunca hacés click en "reiniciar", la actualización entra igual la próxima
-     vez que cerrás Viper. Es la parte que hace que esto sirva de verdad. */
+     vez que cerrás Quartz. Es la parte que hace que esto sirva de verdad. */
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.logger = null;
 
@@ -126,7 +126,7 @@ function iniciar(getWin, {
     fijar({
       fase: 'disponible',
       version: info?.version || null,
-      nombre: String(info?.releaseName || '').trim() || `Viper ${info?.version || ''}`.trim(),
+      nombre: String(info?.releaseName || '').trim() || `Quartz ${info?.version || ''}`.trim(),
       bytes: tamanoDe(info),
       url: info?.version ? `${RELEASES}/tag/v${info.version}` : RELEASES,
     });

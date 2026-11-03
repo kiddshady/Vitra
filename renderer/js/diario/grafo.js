@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Viper — el grafo del Diario (nació en UmbroSys)
+   Quartz — el grafo del Diario (nació en UmbroSys)
    Cada nota es un punto y cada [[enlace]] una línea: las notas que tocan los
    mismos temas quedan amontonadas y se ven los grupos. Dibujado a mano en un
    canvas, sin librerías, con la piel de Opal (no pixel art: el pixel art es
@@ -19,7 +19,7 @@ import { esc } from '../ui.js';
 
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const POS = new Map(); // id → { x, y }: la memoria de dónde quedó cada nota, compartida por los grafos
-const ACENTO = '156 230 80'; // el acento de Viper, el verde veneno (--op-accent-rgb en tokens.css)
+const ACENTO = '255 184 64'; // el acento de Quartz, el ámbar citrino (--op-accent-rgb en tokens.css)
 
 /* Un color tranquilo por etiqueta (el mismo siempre para la misma). */
 function tono(etiqueta) {

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   La mudanza de %APPDATA%\Vitra a %APPDATA%\Viper (src/carpeta.cjs).
+   La mudanza de %APPDATA%\Viper (o \Vitra) a %APPDATA%\Quartz (src/carpeta.cjs).
    Lo que importa: en NINGÚN caso arranca de cero ni se pisa nada. Cada caso
    arma un %APPDATA% falso en una carpeta temporal.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -29,64 +29,84 @@ console.log('\n1. Instalación nueva');
 {
   const a = appData();
   const r = elegir(a);
-  ok('sin nada, usa Viper', r.dir === path.join(a, 'Viper') && r.paso === 'nueva');
-  ok('y no inventa una Vitra', !hay(a, 'Vitra'));
+  ok('sin nada, usa Quartz', r.dir === path.join(a, 'Quartz') && r.paso === 'nueva');
+  ok('y no inventa una Viper', !hay(a, 'Viper'));
 }
 
-console.log('\n2. Viene de Vitra: se muda entera');
+console.log('\n2. Viene de Viper: se muda entera');
 {
   const a = appData();
-  poner(path.join(a, 'Vitra'), 'data/window.json', '{"x":1}');
-  poner(path.join(a, 'Vitra'), 'Local State', 'chromium');
+  poner(path.join(a, 'Viper'), 'data/window.json', '{"x":1}');
+  poner(path.join(a, 'Viper'), 'Local State', 'chromium');
   const r = elegir(a);
-  ok('usa Viper', r.dir === path.join(a, 'Viper') && r.paso === 'mudada');
+  ok('usa Quartz', r.dir === path.join(a, 'Quartz') && r.paso === 'mudada');
   ok('con la ventana de antes', leer(r.dir, 'data/window.json') === '{"x":1}');
   ok('y lo de Chromium', leer(r.dir, 'Local State') === 'chromium');
-  ok('Vitra ya no está', !hay(a, 'Vitra'));
+  ok('Viper ya no está', !hay(a, 'Viper'));
   ok('el segundo arranque no hace nada', elegir(a).paso === 'nueva');
 }
 
-console.log('\n3. Una Viper vacía del todo no frena la mudanza');
+console.log('\n3. Una Quartz vacía del todo no frena la mudanza');
 {
   const a = appData();
-  poner(path.join(a, 'Vitra'), 'data/window.json', 'vieja');
-  fs.mkdirSync(path.join(a, 'Viper'));
+  poner(path.join(a, 'Viper'), 'data/window.json', 'vieja');
+  fs.mkdirSync(path.join(a, 'Quartz'));
   const r = elegir(a);
   ok('se muda igual', r.paso === 'mudada' && leer(r.dir, 'data/window.json') === 'vieja');
 }
 
-console.log('\n4. Una Viper con algo sin datos: no se pisa, usa Vitra');
+console.log('\n4. Una Quartz con algo sin datos: no se pisa, usa Viper');
 {
   const a = appData();
-  poner(path.join(a, 'Vitra'), 'data/window.json', 'vieja');
-  poner(path.join(a, 'Viper'), 'Local State', 'otra');
+  poner(path.join(a, 'Viper'), 'data/window.json', 'vieja');
+  poner(path.join(a, 'Quartz'), 'Local State', 'otra');
   const r = elegir(a);
-  ok('usa Vitra', r.dir === path.join(a, 'Vitra') && r.paso === 'vieja');
-  ok('Viper sigue como estaba', leer(path.join(a, 'Viper'), 'Local State') === 'otra');
+  ok('usa Viper', r.dir === path.join(a, 'Viper') && r.paso === 'vieja');
+  ok('Quartz sigue como estaba', leer(path.join(a, 'Quartz'), 'Local State') === 'otra');
 }
 
-console.log('\n5. Viper con datos manda; Vitra no se toca');
+console.log('\n5. Quartz con datos manda; Viper no se toca');
 {
   const a = appData();
-  poner(path.join(a, 'Viper'), 'data/window.json', 'nueva');
-  poner(path.join(a, 'Vitra'), 'data/window.json', 'vieja');
+  poner(path.join(a, 'Quartz'), 'data/window.json', 'nueva');
+  poner(path.join(a, 'Viper'), 'data/window.json', 'vieja');
   const r = elegir(a);
-  ok('usa Viper', r.dir === path.join(a, 'Viper') && r.paso === 'nueva');
-  ok('Vitra intacta', leer(path.join(a, 'Vitra'), 'data/window.json') === 'vieja');
+  ok('usa Quartz', r.dir === path.join(a, 'Quartz') && r.paso === 'nueva');
+  ok('Viper intacta', leer(path.join(a, 'Viper'), 'data/window.json') === 'vieja');
 }
 
-console.log('\n6. Si renombrar falla, esta vez usa Vitra');
+console.log('\n6. Si renombrar falla, esta vez usa Viper');
 {
   const a = appData();
-  poner(path.join(a, 'Vitra'), 'data/window.json', 'vieja');
+  poner(path.join(a, 'Viper'), 'data/window.json', 'vieja');
   const fsMod = require('fs');
   const original = fsMod.renameSync;
   fsMod.renameSync = () => { throw Object.assign(new Error('EBUSY'), { code: 'EBUSY' }); };
   try {
     const r = elegir(a);
-    ok('usa Vitra', r.dir === path.join(a, 'Vitra') && r.paso === 'vieja');
+    ok('usa Viper', r.dir === path.join(a, 'Viper') && r.paso === 'vieja');
   } finally { fsMod.renameSync = original; }
   ok('y el próximo arranque sí muda', elegir(a).paso === 'mudada');
+}
+
+console.log('\n7. Viene de Vitra sin haber pasado por Viper');
+{
+  const a = appData();
+  poner(path.join(a, 'Vitra'), 'data/window.json', 'vitra');
+  const r = elegir(a);
+  ok('usa Quartz', r.dir === path.join(a, 'Quartz') && r.paso === 'mudada');
+  ok('con la ventana de Vitra', leer(r.dir, 'data/window.json') === 'vitra');
+  ok('Vitra ya no está', !hay(a, 'Vitra'));
+}
+
+console.log('\n8. Viper y Vitra con datos: se muda Viper, Vitra no se toca');
+{
+  const a = appData();
+  poner(path.join(a, 'Viper'), 'data/window.json', 'viper');
+  poner(path.join(a, 'Vitra'), 'data/window.json', 'vitra');
+  const r = elegir(a);
+  ok('usa Quartz con lo de Viper', r.paso === 'mudada' && leer(r.dir, 'data/window.json') === 'viper');
+  ok('Vitra intacta', leer(path.join(a, 'Vitra'), 'data/window.json') === 'vitra');
 }
 
 fs.rmSync(RAIZ, { recursive: true, force: true });

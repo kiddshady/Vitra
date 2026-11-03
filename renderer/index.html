@@ -3,7 +3,7 @@
      script propio (renderer/vendor/prism.js), así que 'self' alcanza. -->
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
-<title>Viper</title>
+<title>Quartz</title>
 
 <link rel="stylesheet" href="./css/fonts.css">
 <link rel="stylesheet" href="./css/tokens.css">
@@ -39,19 +39,17 @@
 </style>
 
 <div id="boot-splash"><!-- marca:splash --><svg xmlns="http://www.w3.org/2000/svg" viewBox="40 40 432 432"><defs>
-<radialGradient id="vp-sp-b" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#101c15"/><stop offset="1" stop-color="#050806"/></radialGradient>
-<clipPath id="vp-sp-c"><rect width="512" height="512" rx="97"/></clipPath>
-<radialGradient id="vp-sp-i" cx="46%" cy="44%" r="60%"><stop offset="0" stop-color="#ffe08a"/><stop offset=".45" stop-color="#ffb43c"/><stop offset="1" stop-color="#a85410"/></radialGradient>
-</defs><g clip-path="url(#vp-sp-c)">
-<path d="M256.0 80.0 408.4 168.0 408.4 344.0 256.0 432.0 103.6 344.0 103.6 168.0z" fill="none" stroke="rgba(156,230,80,0.28)" stroke-width="7" stroke-linejoin="round"/>
-<path d="M256 256L256.0 80.0 M256 256L408.4 168.0 M256 256L408.4 344.0 M256 256L256.0 432.0 M256 256L103.6 344.0 M256 256L103.6 168.0" fill="none" stroke="rgba(156,230,80,0.5)" stroke-width="10" stroke-linecap="round"/>
-<circle cx="256.0" cy="80.0" r="30" fill="rgb(156,230,80)"/><circle cx="408.4" cy="168.0" r="30" fill="rgb(156,230,80)"/><circle cx="408.4" cy="344.0" r="30" fill="rgb(156,230,80)"/><circle cx="256.0" cy="432.0" r="30" fill="rgb(156,230,80)"/><circle cx="103.6" cy="344.0" r="30" fill="rgb(156,230,80)"/><circle cx="103.6" cy="168.0" r="30" fill="rgb(156,230,80)"/>
-<circle cx="256" cy="256" r="104" fill="#050806"/>
-<circle cx="256" cy="256" r="88" fill="url(#vp-sp-i)"/>
-<circle cx="256" cy="256" r="63.36" fill="none" stroke="#000" stroke-opacity=".14" stroke-width="4.4"/>
-<circle cx="256" cy="256" r="85.36" fill="none" stroke="#2a1404" stroke-opacity=".55" stroke-width="5.28"/>
-<path d="M256 172.4c-20.68 39.6 -20.68 127.6 0 167.2c20.68 -39.6 20.68 -127.6 0 -167.2z" fill="#050806"/>
-<ellipse cx="290.32" cy="219.92" rx="15.84" ry="10.12" fill="#fff" opacity=".55" transform="rotate(-28 290.32 219.92)"/>
+<radialGradient id="qz-sp-b" cx="50%" cy="34%" r="80%"><stop offset="0" stop-color="#1b1712"/><stop offset="1" stop-color="#0a0908"/></radialGradient>
+<radialGradient id="qz-sp-h" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="rgba(255,184,64,0.24)"/><stop offset="1" stop-color="rgba(255,184,64,0)"/></radialGradient>
+<clipPath id="qz-sp-c"><rect width="512" height="512" rx="97"/></clipPath>
+</defs><g clip-path="url(#qz-sp-c)">
+<circle cx="256" cy="256" r="220" fill="url(#qz-sp-h)"/>
+<polygon points="425.7 354.0 256.0 452.0 86.3 354.0 86.3 158.0 256.0 60.0 425.7 158.0" fill="rgba(255,184,64,0.160)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
+<polygon points="394.6 336.0 256.0 416.0 117.4 336.0 117.4 176.0 256.0 96.0 394.6 176.0" fill="rgba(255,194,91,0.280)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
+<polygon points="365.1 319.0 256.0 382.0 146.9 319.0 146.9 193.0 256.0 130.0 365.1 193.0" fill="rgba(255,204,117,0.400)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
+<polygon points="337.4 303.0 256.0 350.0 174.6 303.0 174.6 209.0 256.0 162.0 337.4 209.0" fill="rgba(255,214,144,0.520)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
+<polygon points="311.4 288.0 256.0 320.0 200.6 288.0 200.6 224.0 256.0 192.0 311.4 224.0" fill="rgba(255,224,171,0.640)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
+<polygon points="287.2 274.0 256.0 292.0 224.8 274.0 224.8 238.0 256.0 220.0 287.2 238.0" fill="rgba(255,234,198,0.760)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
 </g></svg><!-- /marca:splash --></div>
 
 <div class="op-app">
@@ -62,22 +60,20 @@
 
   <!-- ── Titlebar propia: aire, sin relleno ni línea ───────────────────────── -->
   <header class="op-titlebar">
-    <div class="op-brand op-no-drag" data-tip="Viper" aria-label="Viper" id="brand">
+    <div class="op-brand op-no-drag" data-tip="Quartz" aria-label="Quartz" id="brand">
       <!-- La marca sola, sin baldosa ni el nombre al lado (Fran, 3/11/2026). La escribe npm run icon. -->
       <!-- marca:titlebar --><svg class="vp-marca" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="40 40 432 432"><defs>
-<radialGradient id="vp-tb-b" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#101c15"/><stop offset="1" stop-color="#050806"/></radialGradient>
-<clipPath id="vp-tb-c"><rect width="512" height="512" rx="97"/></clipPath>
-<radialGradient id="vp-tb-i" cx="46%" cy="44%" r="60%"><stop offset="0" stop-color="#ffe08a"/><stop offset=".45" stop-color="#ffb43c"/><stop offset="1" stop-color="#a85410"/></radialGradient>
-</defs><g clip-path="url(#vp-tb-c)">
-<path d="M256.0 80.0 408.4 168.0 408.4 344.0 256.0 432.0 103.6 344.0 103.6 168.0z" fill="none" stroke="rgba(156,230,80,0.28)" stroke-width="7" stroke-linejoin="round"/>
-<path d="M256 256L256.0 80.0 M256 256L408.4 168.0 M256 256L408.4 344.0 M256 256L256.0 432.0 M256 256L103.6 344.0 M256 256L103.6 168.0" fill="none" stroke="rgba(156,230,80,0.5)" stroke-width="10" stroke-linecap="round"/>
-<circle cx="256.0" cy="80.0" r="30" fill="rgb(156,230,80)"/><circle cx="408.4" cy="168.0" r="30" fill="rgb(156,230,80)"/><circle cx="408.4" cy="344.0" r="30" fill="rgb(156,230,80)"/><circle cx="256.0" cy="432.0" r="30" fill="rgb(156,230,80)"/><circle cx="103.6" cy="344.0" r="30" fill="rgb(156,230,80)"/><circle cx="103.6" cy="168.0" r="30" fill="rgb(156,230,80)"/>
-<circle cx="256" cy="256" r="104" fill="#050806"/>
-<circle cx="256" cy="256" r="88" fill="url(#vp-tb-i)"/>
-<circle cx="256" cy="256" r="63.36" fill="none" stroke="#000" stroke-opacity=".14" stroke-width="4.4"/>
-<circle cx="256" cy="256" r="85.36" fill="none" stroke="#2a1404" stroke-opacity=".55" stroke-width="5.28"/>
-<path d="M256 172.4c-20.68 39.6 -20.68 127.6 0 167.2c20.68 -39.6 20.68 -127.6 0 -167.2z" fill="#050806"/>
-<ellipse cx="290.32" cy="219.92" rx="15.84" ry="10.12" fill="#fff" opacity=".55" transform="rotate(-28 290.32 219.92)"/>
+<radialGradient id="qz-tb-b" cx="50%" cy="34%" r="80%"><stop offset="0" stop-color="#1b1712"/><stop offset="1" stop-color="#0a0908"/></radialGradient>
+<radialGradient id="qz-tb-h" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="rgba(255,184,64,0.24)"/><stop offset="1" stop-color="rgba(255,184,64,0)"/></radialGradient>
+<clipPath id="qz-tb-c"><rect width="512" height="512" rx="97"/></clipPath>
+</defs><g clip-path="url(#qz-tb-c)">
+<circle cx="256" cy="256" r="220" fill="url(#qz-tb-h)"/>
+<polygon points="425.7 354.0 256.0 452.0 86.3 354.0 86.3 158.0 256.0 60.0 425.7 158.0" fill="rgba(255,184,64,0.160)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
+<polygon points="394.6 336.0 256.0 416.0 117.4 336.0 117.4 176.0 256.0 96.0 394.6 176.0" fill="rgba(255,194,91,0.280)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
+<polygon points="365.1 319.0 256.0 382.0 146.9 319.0 146.9 193.0 256.0 130.0 365.1 193.0" fill="rgba(255,204,117,0.400)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
+<polygon points="337.4 303.0 256.0 350.0 174.6 303.0 174.6 209.0 256.0 162.0 337.4 209.0" fill="rgba(255,214,144,0.520)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
+<polygon points="311.4 288.0 256.0 320.0 200.6 288.0 200.6 224.0 256.0 192.0 311.4 224.0" fill="rgba(255,224,171,0.640)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
+<polygon points="287.2 274.0 256.0 292.0 224.8 274.0 224.8 238.0 256.0 220.0 287.2 238.0" fill="rgba(255,234,198,0.760)" stroke="#0a0908" stroke-opacity=".55" stroke-width="5" stroke-linejoin="round"/>
 </g></svg><!-- /marca:titlebar -->
     </div>
     <div class="op-titlebar__context" id="titlebar-context"></div>

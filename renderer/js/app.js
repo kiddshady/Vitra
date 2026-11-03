@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Viper — arranque (se llamó Vitra hasta la 0.1.x)
+   Quartz — arranque (se llamó Vitra hasta la 0.1.x)
    La app es el Diario y nada más: una ventana de Opal oscura con sus
    tres hojas (diario/diario.js). Acá se monta, se cablean los controles de
    la ventana y se deja todo listo para usarla sin mouse.
@@ -41,7 +41,7 @@ function wireVentana() {
 }
 
 /* Los avisos caen en la esquina de abajo a la derecha de la hoja de la nota,
-   adentro de su aire. Shell los ubica contra .op-main, que Viper no tiene: se
+   adentro de su aire. Shell los ubica contra .op-main, que Quartz no tiene: se
    mide la hoja (y acompaña cuando la ventana cambia de tamaño). */
 function colocarToasts() {
   const hoja = raiz.querySelector('.vt-diario__hoja');

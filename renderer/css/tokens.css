@@ -38,7 +38,7 @@
      cantos, líneas y puntos (ver "la luz no rellena, talla", más abajo).
        cian    : 34 211 238    ·  violeta : 167 139 250
        verde   : 74 222 128    ·  ámbar   : 251 191 36 */
-  --op-accent-rgb: 156 230 80;
+  --op-accent-rgb: 255 184 64;
 
   /* La familia monoespaciada: la de los datos exactos, el código y los IDs.
      Apunta a uno de los tokens `--op-mono-*` de abajo, nunca directo a un
