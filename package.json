@@ -1,7 +1,7 @@
 {
   "name": "viper",
   "productName": "Viper",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "El Diario de Fran: notas en Markdown enlazadas con [[ ]], con backlinks y grafo, con piel de víbora sobre Opal.",
   "main": "main.cjs",
   "author": "Kidd Shady · Umbrovex Systems <umbrovex@proton.me>",
