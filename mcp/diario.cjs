@@ -9,7 +9,7 @@
    mensaje por renglón). Sin dependencias: node pelado.
 
    Se conecta una vez, para todas las sesiones de la UCX:
-     claude mcp add --scope user diario -- node S:\tools\Viper\mcp\diario.cjs
+     claude mcp add --scope user diario -- node S:\tools\Vitra\mcp\diario.cjs
    (la carpeta sale de DIARIO_DIR, o S:\Diario por defecto).
 
    Las herramientas de escritura no pueden borrar ni pisar: crear nunca

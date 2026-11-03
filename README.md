@@ -53,8 +53,10 @@ npm run icon    # build/icon.png + icon.ico, y la marca de la titlebar y del spl
 - **La copia canónica del núcleo es la de Viper.** Si cambia el formato de la
   carpeta (frontmatter, `diario/`, `.diario/`), se cambia en las dos.
 - **El MCP** se registra una vez, para todas las sesiones:
-  `claude mcp add --scope user diario -- node S:\tools\Viper\mcp\diario.cjs`.
+  `claude mcp add --scope user diario -- node S:\tools\Vitra\mcp\diario.cjs`.
   Corre desde esta carpeta con el node del sistema, no desde lo instalado.
+  La carpeta y el repo siguen llamándose Vitra: renombrarlos corta el MCP
+  hasta registrarlo de nuevo con la ruta nueva.
 - **Probar sin tocar el diario de verdad:** `VITRA_DIARIO=<carpeta>` cambia la
   carpeta, `VITRA_DATA=<carpeta>` los datos, `VITRA_VARIAS=1` deja abrir otra
   instancia.
