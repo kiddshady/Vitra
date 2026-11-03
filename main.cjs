@@ -55,6 +55,7 @@ const { keepAlive } = require('./src/recover.cjs');
 const { crearDiario } = require('./src/diario.cjs');
 const { mantenerVidrio } = require('./src/vidrio.cjs');
 const actualizador = require('./src/actualizador.cjs');
+const bandeja = require('./src/bandeja.cjs');
 
 /* Color base de arranque. Tiene que coincidir con --op-bg de tokens.css.
    Como --op-bg es oklch y Electron solo entiende hex, el renderer se lo vuelve
@@ -84,6 +85,8 @@ const MIN_H = 420;
 
 /** @type {BrowserWindow | null} */
 let win = null;
+/** Se está cerrando de verdad (ver «La bandeja», abajo): la X ya no esconde. */
+let saliendo = false;
 
 /* ── Estado de la ventana ────────────────────────────────────────────────────
    Recordar tamaño y posición entre sesiones. La trampa: si el monitor donde
@@ -225,9 +228,16 @@ function createWindow(state) {
   /* Apagar, reiniciar o cerrar la sesión de Windows no pasa por la cruz:
      Windows avisa y después puede cortar. Lo tuyo que quede pendiente (un
      borrador con debounce) va acá también, con writeSync. */
-  win.on('close', flushWindowState);
-  win.on('query-session-end', flushWindowState);
-  win.on('session-end', flushWindowState);
+  // La X esconde (Viper queda en la bandeja), salvo que se esté saliendo de verdad.
+  win.on('close', (e) => {
+    flushWindowState();
+    if (saliendo) return;
+    e.preventDefault();
+    win.hide();
+  });
+  // Windows apagándose: tiene que poder cerrar, no esconder.
+  win.on('query-session-end', () => { saliendo = true; flushWindowState(); });
+  win.on('session-end', () => { saliendo = true; flushWindowState(); });
 
   // Nada de navegación fuera de la app; los links externos van al navegador.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -301,17 +311,32 @@ app.on('before-quit', () => diario.cerrar());
    evita), pero se confunde cuál es cuál: la segunda trae la primera adelante. */
 const unica = process.env.VITRA_VARIAS === '1' || app.requestSingleInstanceLock();
 if (!unica) app.quit();
-app.on('second-instance', () => {
+/* Traer la ventana: desde otra instancia, desde la bandeja. Escondida con la
+   X o minimizada, vuelve igual. */
+function mostrar() {
   if (!win || win.isDestroyed()) return;
   if (win.isMinimized()) win.restore();
   win.show();
   win.focus();
-});
+}
+app.on('second-instance', mostrar);
+
+/* ── La bandeja (pedido de Fran, 3/11/2026) ──────────────────────────────────
+   La X esconde la ventana y Viper sigue en la bandeja (src/bandeja.cjs). Eso
+   convierte al cierre en algo que hay que poder DESACTIVAR, porque si no la
+   app no se muere nunca: `saliendo` es esa llave, y la levantan los cierres
+   de verdad: «Salir» en la bandeja, un reinicio para actualizar
+   (quitAndInstall pasa por before-quit) y Windows apagándose. Como la X ya
+   no cierra, la actualización bajada entra al salir desde la bandeja, al
+   apagar la PC o desde «Reiniciar con Viper X» en el menú «Más». */
+app.on('before-quit', () => { saliendo = true; });
+app.on('will-quit', () => bandeja.destruir());
 
 app.whenReady().then(async () => {
   if (!unica) return;
   ipc.register();
   createWindow(await loadWindowState());
+  bandeja.crear({ mostrar, salir: () => { saliendo = true; app.quit(); } });
   /* Autoupdate (pedido de Fran, 2/11/2026): busca un rato después de abrir y
      cada 4 horas, una versión nueva se baja sola y entra al cerrar Viper
      (src/actualizador.cjs). Reiniciar antes queda en el menú «Más». */

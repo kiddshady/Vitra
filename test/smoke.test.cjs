@@ -154,6 +154,16 @@ async function correr() {
   await espera(300);
   ok('a 820 px se va el panel de la derecha', await js(win, `getComputedStyle(document.querySelector('.vt-diario__panel')).display === 'none'`));
   await foto(win, '7-angosta');
+
+  console.log('\n8. La bandeja');
+  const bandeja = require('../src/bandeja.cjs');
+  ok('el ícono está en la bandeja', bandeja.existe());
+  win.close();
+  await espera(300);
+  ok('la X esconde la ventana, no cierra Viper', !win.isDestroyed() && !win.isVisible());
+  app.emit('second-instance');
+  await espera(300);
+  ok('abrirla otra vez la trae de vuelta', !win.isDestroyed() && win.isVisible());
 }
 
 app.whenReady().then(async () => {

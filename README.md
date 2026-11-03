@@ -21,6 +21,7 @@ npm run icon    # build/icon.png + icon.ico, y la marca de la titlebar y del spl
 | El núcleo (enlaces, backlinks, grafo, versiones, papelera, guardar sin pisar) | `src/diario.cjs` |
 | El servidor MCP para Claude Code (node pelado) | `mcp/diario.cjs` |
 | Los canales del diario y la instancia única | `main.cjs`, al final |
+| La bandeja: la X esconde, «Abrir» y «Salir» | `src/bandeja.cjs` |
 | La mudanza de `%APPDATA%\Vitra` a `%APPDATA%\Viper` | `src/carpeta.cjs` |
 | La cara: tres hojas, atajos, el menú de `[[` | `renderer/js/diario/diario.js` |
 | El grafo (canvas propio) | `renderer/js/diario/grafo.js` |
@@ -68,9 +69,13 @@ npm run icon    # build/icon.png + icon.ico, y la marca de la titlebar y del spl
   carpeta, `VITRA_DATA=<carpeta>` los datos, `VITRA_VARIAS=1` deja abrir otra
   instancia.
 - **Actualizaciones:** busca a los 6 s de abrir y cada 4 horas; una versión
-  nueva se baja sola y se instala en silencio al cerrar. Un solo aviso cuando
+  nueva se baja sola y se instala en silencio al salir. Un solo aviso cuando
   ya está bajada, y «Reiniciar con Viper X» en el menú «Más».
 - **Una sola instancia:** abrir otra trae la que está adelante.
+- **La bandeja:** la X esconde la ventana y Viper queda al lado del reloj
+  (`src/bandeja.cjs`, el ícono exacto con baldosa). Clic la trae; el menú
+  tiene «Abrir Viper» y «Salir». Una actualización bajada entra al salir desde
+  ahí, al apagar la PC o desde «Reiniciar con Viper X».
 
 ## Atajos
 

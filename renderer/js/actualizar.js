@@ -2,7 +2,7 @@
    Viper — las actualizaciones, en la cara
    Autoupdate (Fran, 2/11/2026): el main busca al rato de abrir y cada 4
    horas, y una versión nueva se baja sola (src/actualizador.cjs). Acá no se
-   interrumpe nada: un solo aviso cuando ya está bajada («entra al cerrar»),
+   interrumpe nada: un solo aviso cuando ya está bajada («entra al salir»),
    y reiniciar antes vive en el menú «Más» de la nota (diario.js lo pide con
    menuExtra).
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -20,7 +20,7 @@ function alCambiar(s) {
   if (!s) return;
   if (s.fase === 'listo' && avisada !== s.version) {
     avisada = s.version;
-    Toast.show({ title: `Viper ${s.version || ''} está lista`.replace('  ', ' '), text: 'Se bajó sola y entra cuando cierres Viper. Para tenerla ya, reiniciá desde «Más».', icon: 'check' });
+    Toast.show({ title: `Viper ${s.version || ''} está lista`.replace('  ', ' '), text: 'Se bajó sola y entra cuando salgas de Viper desde la bandeja o apagues la PC. Para tenerla ya, reiniciá desde «Más».', icon: 'check' });
   } else if (s.manual && s.fase === 'al-dia' && antes?.fase === 'buscando') {
     Toast.show({ title: 'Estás al día', text: `Viper ${s.actual} es la última.`, icon: 'check' });
   } else if (s.fase === 'error' && (s.manual || antes?.fase === 'descargando') && antes?.error !== s.error) {
