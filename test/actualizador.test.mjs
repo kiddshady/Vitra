@@ -117,7 +117,7 @@ ok('y ya no queda error en el estado', upd.leer().error === '');
 
 // Hay versión nueva y la descarga falla: lo mismo, un solo error.
 enviados.length = 0;
-falso.hay = { version: '9.9.9', releaseName: 'Vitra 9.9.9', files: [{ size: 1234 }] };
+falso.hay = { version: '9.9.9', releaseName: 'Viper 9.9.9', files: [{ size: 1234 }] };
 await upd.buscar({ manual: true });
 ok('con versión nueva: buscando → disponible', fases() === 'buscando → disponible', fases());
 ok('y dice cuál y cuánto pesa', upd.leer().version === '9.9.9' && upd.leer().bytes === 1234);
@@ -131,7 +131,7 @@ console.log('\n5. Autoupdate: lo nuevo se baja solo');
   const env2 = [];
   const v2 = { isDestroyed: () => false, webContents: { send: (_c, e) => env2.push(e) } };
   const f2 = new UpdaterFalso();
-  f2.hay = { version: '9.9.9', releaseName: 'Vitra 9.9.9', files: [{ size: 1234 }] };
+  f2.hay = { version: '9.9.9', releaseName: 'Viper 9.9.9', files: [{ size: 1234 }] };
   upd.iniciar(() => v2, { empaquetada: true, portable: false, updater: f2, autoDescargar: true });
   await upd.buscar({ manual: false });
   await new Promise((r) => setTimeout(r, 20));

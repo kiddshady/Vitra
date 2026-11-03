@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Vitra — el grafo del Diario (nació en UmbroSys)
+   Viper — el grafo del Diario (nació en UmbroSys)
    Cada nota es un punto y cada [[enlace]] una línea: las notas que tocan los
    mismos temas quedan amontonadas y se ven los grupos. Dibujado a mano en un
    canvas, sin librerías, con la piel de Opal (no pixel art: el pixel art es
@@ -19,7 +19,7 @@ import { esc } from '../ui.js';
 
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const POS = new Map(); // id → { x, y }: la memoria de dónde quedó cada nota, compartida por los grafos
-const AMBAR = '255 180 84'; // el acento del Diario (--vt-acento en vitra.css)
+const ACENTO = '156 230 80'; // el acento de Viper, el verde veneno (--op-accent-rgb en tokens.css)
 
 /* Un color tranquilo por etiqueta (el mismo siempre para la misma). */
 function tono(etiqueta) {
@@ -176,9 +176,9 @@ export function crearGrafo(caja, { alElegir, chico = false }) {
       ctx.globalAlpha = apagar(n);
       if (n.id === foco) {
         const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 4);
-        g.addColorStop(0, `rgb(${AMBAR} / .35)`); g.addColorStop(1, `rgb(${AMBAR} / 0)`);
+        g.addColorStop(0, `rgb(${ACENTO} / .35)`); g.addColorStop(1, `rgb(${ACENTO} / 0)`);
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, r * 4, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = `rgb(${AMBAR})`;
+        ctx.fillStyle = `rgb(${ACENTO})`;
         ctx.beginPath(); ctx.arc(p.x, p.y, r + 0.6, 0, Math.PI * 2); ctx.fill();
       } else if (n.fantasma) {
         ctx.strokeStyle = 'rgb(255 255 255 / .38)';

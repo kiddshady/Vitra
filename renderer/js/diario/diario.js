@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Vitra — el Diario de Fran
+   Viper — el Diario de Fran
    Nació adentro de UmbroSys (1.20.0, 1/11/2026: diseño de Fran con Sam, la
    variante híbrida) y se mudó a esta app suelta el 2/11/2026. Las notas son
    los .md de S:\Diario (src/diario.cjs): esta ventana es solo la cara, y

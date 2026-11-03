@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Vitra — markdown a HTML (de UmbroSys)
+   Viper — markdown a HTML (de UmbroSys)
    Para los mails de los agentes (la app Mail) y las notas del pizarrón. Lo
    que escriben puede traer cosas de la web, así que nada del texto pasa como
    HTML: todo se escapa y solo se arman las etiquetas que este archivo conoce.

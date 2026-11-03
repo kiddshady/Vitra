@@ -2,14 +2,14 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Vitra — el servidor MCP del Diario (nació en UmbroSys)
+   Viper — el servidor MCP del Diario (nació en UmbroSys)
    El enchufe para que Claude Code lea, busque, cree y enlace notas del diario
-   de Fran (src/diario.cjs), con Vitra o UmbroSys abiertos o cerrados. Es un
+   de Fran (src/diario.cjs), con Viper o UmbroSys abiertos o cerrados. Es un
    programita que Claude Code arranca solo y le habla por stdin/stdout (JSON-RPC, un
    mensaje por renglón). Sin dependencias: node pelado.
 
    Se conecta una vez, para todas las sesiones de la UCX:
-     claude mcp add --scope user diario -- node S:\tools\Vitra\mcp\diario.cjs
+     claude mcp add --scope user diario -- node S:\tools\Viper\mcp\diario.cjs
    (la carpeta sale de DIARIO_DIR, o S:\Diario por defecto).
 
    Las herramientas de escritura no pueden borrar ni pisar: crear nunca
@@ -145,7 +145,7 @@ async function atender(m) {
         return responder(id, {
           protocolVersion: params?.protocolVersion || '2025-06-18',
           capabilities: { tools: {} },
-          serverInfo: { name: 'diario', title: 'El Diario de Fran (Vitra)', version: VERSION },
+          serverInfo: { name: 'diario', title: 'El Diario de Fran (Viper)', version: VERSION },
           instructions: INSTRUCCIONES,
         });
       case 'ping':

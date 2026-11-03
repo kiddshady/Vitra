@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Vitra — arranque
-   La app es el Diario y nada más: una ventana de vidrio acrílico con sus
+   Viper — arranque (se llamó Vitra hasta la 0.1.x)
+   La app es el Diario y nada más: una ventana de Opal oscura con sus
    tres hojas (diario/diario.js). Acá se monta, se cablean los controles de
    la ventana y se deja todo listo para usarla sin mouse.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -17,11 +17,11 @@ const api = window.opal;
 const raiz = document.getElementById('diario');
 
 /* ══ La ventana ══════════════════════════════════════════════════════════════
-   Siempre acrílico: el main ya la crea con el material de Windows 11, y acá
-   se prende la pila de UmbroSys en el fondo (shell.css, .vidrio-acrilico).
-   Sin statusbar y sin contexto: la titlebar es aire con la marca. */
+   La variante oscura de Opal (Fran, 3/11/2026; Vitra era acrílica): ventana
+   opaca, la niebla con las escamas y las hojas encima. Sin statusbar y sin
+   contexto: la titlebar es aire con la marca sola. */
 function aplicarVentana() {
-  Shell.set({ statusbar: false, contexto: false, vidrio: 'acrilico' });
+  Shell.set({ statusbar: false, contexto: false, vidrio: 'tarjeta' });
 }
 
 function wireVentana() {
@@ -41,7 +41,7 @@ function wireVentana() {
 }
 
 /* Los avisos caen en la esquina de abajo a la derecha de la hoja de la nota,
-   adentro de su aire. Shell los ubica contra .op-main, que Vitra no tiene: se
+   adentro de su aire. Shell los ubica contra .op-main, que Viper no tiene: se
    mide la hoja (y acompaña cuando la ventana cambia de tamaño). */
 function colocarToasts() {
   const hoja = raiz.querySelector('.vt-diario__hoja');

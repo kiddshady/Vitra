@@ -1,21 +1,67 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Vitra — la piel del Diario
-   Opal en su variante acrílico (Shell.set({ vidrio: 'acrilico' })): la
-   ventana entera es el vidrio (el escritorio que desenfoca Windows, con la
-   pila de UmbroSys encima, en shell.css) y adentro flotan tres hojas con
-   relleno y SIN blur propio: la lista, la nota y quién la nombra. Entre
-   ellas, aire (--op-gutter); ninguna línea divide nada.
+   VIPER — la piel del Diario
+   (el archivo y el prefijo vt- son de cuando se llamaba Vitra, hasta la 0.1)
+
+   Opal en la variante OSCURA (Fran, 3/11/2026: deja el acrílico): la ventana
+   es opaca y adentro flotan tres hojas, la lista, la nota y quién la nombra,
+   con aire entre ellas (--op-gutter) y ninguna línea. Lo que hace que sea
+   Viper y no otra app de la familia, con los detalles de Praxio llevados a la
+   víbora (elegido en la maqueta S:\mockups\viper):
+
+     · el sustrato son escamas con quilla, en el verde apenas (al 55 % de la
+       perilla de la maqueta), debajo de la niebla: el papel de electro de
+       Praxio;
+     · la niebla junta luz, verde y un poco del ámbar del ojo;
+     · el acento es el verde del veneno (tools/retint.mjs --accent "156 230 80");
+     · la marca es el ícono de verdad (la V enroscada), sin baldosa y sin el
+       nombre al lado: la escribe npm run icon en el index;
+     · la nota abierta lleva una luz en el canto izquierdo (el rail de
+       Praxio) y el h1 de una nota, una quilla verde.
+
+   El cromo no tiene color: si algo es verde, es un canto, una línea o un
+   punto; si es ámbar, pide atención; si es rojo, falló.
 
    Lo de abajo se trajo de UmbroSys (umbro.css, 1.22.0) cambiando us- por vt-:
-   el markdown, los colores del código, el Diario y el grafo. Su detalle de
-   color es el ámbar del Diario (--vt-acento), el mismo que el acento de la
-   app (tools/retint.mjs --accent "255 180 84").
+   el markdown, los colores del código, el Diario y el grafo.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── La marca: el grafo del ícono. Las dos notas en el gris de la marca, la
-   abierta en ámbar y llena (Opal apaga el «fuego» al .34: acá no). ── */
-.op-brand__mark { color: var(--op-text-2); }
-.op-brand__mark .op-brand__trail { opacity: 1; stroke: rgb(255 180 84); fill: rgb(255 180 84 / .9); }
+:root { --vp-ambar-rgb: 255 184 64; }
+
+/* ── El sustrato: grano, velo parejo, escamas con quilla y la niebla ──────────
+   El azulejo de las escamas lleva el verde escrito (156 230 80 a .061): si
+   cambia el acento, cambia acá también. Va debajo del velo, como la grilla de
+   Praxio. En :root también: el calco del cambio de vista usa la misma niebla. */
+:root,
+.op-app {
+  --op-sustrato:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E"),
+    linear-gradient(rgb(6 9 7 / .3), rgb(6 9 7 / .3)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='20'%3E%3Cpath d='M0 0a14 10 0 0 0 28 0M-14 10a14 10 0 0 0 28 0M14 10a14 10 0 0 0 28 0M0 20a14 10 0 0 0 28 0M14 2.2v5.6M0 12.2v5.6M28 12.2v5.6' fill='none' stroke='rgba(156,230,80,0.061)' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") 0 0 / 28px 20px,
+    radial-gradient(46vw 46vw at 8% 0%, rgb(var(--op-accent-rgb) / calc(.075 * var(--op-fog))), transparent 70%),
+    radial-gradient(42vw 42vw at 94% 14%, rgb(255 255 255 / calc(.045 * var(--op-fog))), transparent 70%),
+    radial-gradient(38vw 38vw at 86% 106%, rgb(var(--vp-ambar-rgb) / calc(.04 * var(--op-fog))), transparent 70%),
+    radial-gradient(40vw 40vw at 28% 110%, rgb(40 160 120 / calc(.05 * var(--op-fog))), transparent 70%);
+}
+
+/* ── La marca: el dibujo solo, a 22 px, sin el nombre ── */
+.op-brand .vp-marca { width: 22px; height: 22px; flex: none; display: block; }
+
+/* ── La nota abierta: la luz en el canto izquierdo, como el rail de Praxio.
+   Se enciende en su lugar, por opacidad. ── */
+.vt-diario__item { position: relative; }
+.vt-diario__item::after {
+  content: '';
+  position: absolute;
+  left: -6px; top: 50%;
+  width: 3px; height: 16px; margin-top: -8px;
+  border-radius: 0 3px 3px 0;
+  background: var(--op-accent);
+  box-shadow: 0 0 10px rgb(var(--op-accent-rgb) / .85);
+  opacity: 0;
+  transition: opacity var(--op-t-2) var(--op-ease-soft);
+  pointer-events: none;
+}
+.vt-diario__item.is-activo::after { opacity: 1; }
 
 /* ── El velo del acrílico ─────────────────────────────────────────────────────
    Opal trae el velo de abajo al 42 %, calcado del piso de UmbroSys, que ya es
@@ -63,13 +109,15 @@
 .vt-md > :last-child { margin-bottom: 0; }
 .vt-md p { margin: 0 0 .8em; }
 .vt-md :is(h1, h2, h3, h4, h5, h6) { margin: 1.5em 0 .5em; color: var(--op-text); font-weight: var(--op-w-semi); line-height: 1.3; letter-spacing: var(--op-track-tight); }
-.vt-md h1 { font-size: 19px; }
+.vt-md h1 { position: relative; font-size: 19px; }
+/* la quilla: una rayita verde antes del título de una nota */
+.vt-md h1::before { content: ''; position: absolute; left: -14px; top: .36em; width: 3px; height: .8em; border-radius: 2px; background: linear-gradient(var(--op-accent), rgb(var(--op-accent-rgb) / .2)); }
 .vt-md h2 { font-size: var(--op-fs-15); }
 .vt-md h3 { font-size: var(--op-fs-13); }
 .vt-md :is(h4, h5, h6) { font-size: var(--op-fs-12); color: var(--op-text-2); }
 .vt-md strong { color: var(--op-text); font-weight: var(--op-w-semi); }
 .vt-md del { color: var(--op-text-3); }
-.vt-md a { color: #7de8f3; text-decoration: underline; text-decoration-color: rgb(125 232 243 / .35); text-underline-offset: 2px; transition: text-decoration-color var(--op-t-1) var(--op-ease-soft); }
+.vt-md a { color: rgb(var(--op-accent-rgb) / .9); text-decoration: underline; text-decoration-color: rgb(var(--op-accent-rgb) / .35); text-underline-offset: 2px; transition: text-decoration-color var(--op-t-1) var(--op-ease-soft); }
 .vt-md a:hover { text-decoration-color: currentColor; }
 .vt-md code { padding: 1px 5px; border-radius: var(--op-r-xs); background: var(--op-sunken); box-shadow: inset 0 0 0 1px var(--op-line); font: .92em var(--op-mono); color: var(--op-text); }
 .vt-md .md-codigo { margin: 0 0 1em; padding: 12px 14px; border-radius: var(--op-r-md); background: var(--op-sunken); box-shadow: inset 0 0 0 1px var(--op-line); overflow-x: auto; }
@@ -96,10 +144,10 @@
    Hojas flotantes con aire entre ellas, sin líneas y sin blur (la ventana
    ya es el vidrio). La lista a la izquierda, la nota en el medio
    y quién la nombra con su grafo chico a la derecha. Su detalle de color es el
-   ámbar de la cinta de su baldosa: la nota abierta en el grafo, el cursor y
+   verde del acento: la nota abierta en el grafo, el cursor y
    los enlaces. Con la ventana angosta se va el panel de la derecha. */
 .vt-diario {
-  --vt-acento: 255 180 84;
+  --vt-acento: var(--op-accent-rgb);
   grid-row: 2;
   min-width: 0; min-height: 0;
   display: grid; grid-template-columns: minmax(230px, 290px) minmax(0, 1fr) minmax(220px, 280px); gap: var(--op-gutter);
@@ -141,7 +189,7 @@
 }
 .vt-diario__ico .op-icon { width: 13px; height: 13px; }
 .vt-diario__ico b { font: var(--op-w-semi) var(--op-fs-11) var(--op-mono); font-variant-numeric: tabular-nums; color: var(--op-text-2); transition: color var(--op-t-2) var(--op-ease-soft); }
-.vt-diario__item.is-activo .vt-diario__ico { box-shadow: inset 0 0 0 1px rgb(var(--vt-acento) / .45); color: rgb(var(--vt-acento)); }
+.vt-diario__item.is-activo .vt-diario__ico { box-shadow: inset 0 0 0 1px rgb(var(--vt-acento) / .45), inset 0 0 12px rgb(var(--vt-acento) / .12); color: rgb(var(--vt-acento)); }
 .vt-diario__item.is-activo .vt-diario__ico b { color: rgb(var(--vt-acento)); }
 .vt-diario__txt { display: grid; gap: 1px; min-width: 0; padding-top: 1px; }
 .vt-diario__fila { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
@@ -162,7 +210,7 @@
 .vt-diario__chip { padding: 1px 7px; border-radius: var(--op-r-pill); background: var(--op-wash-1); box-shadow: inset 0 0 0 1px var(--op-line-2); color: var(--op-text-2); }
 .vt-diario__ruta { font-family: var(--op-mono); font-size: var(--op-fs-10); color: var(--op-text-4); user-select: text; }
 .vt-diario__estado { display: inline-grid; flex: none; align-self: flex-start; margin-top: 6px; font-size: var(--op-fs-11); color: var(--op-text-4); white-space: nowrap; transition: color var(--op-t-2) var(--op-ease-soft); }
-.vt-diario__estado.is-afuera { color: rgb(var(--vt-acento) / .85); }
+.vt-diario__estado.is-afuera { color: rgb(var(--vp-ambar-rgb) / .9); }   /* pide atención: ámbar */
 .vt-diario__estado.is-error { color: var(--op-danger, #ff6b6b); }
 .vt-diario__acciones { flex: none; display: flex; gap: 2px; padding-top: 2px; }
 .vt-diario__acciones .op-iconbtn { transition: var(--tr-color), opacity var(--op-t-2) var(--op-ease-soft); }
@@ -202,7 +250,7 @@
 /* el espejo con el que se mide dónde está el cursor (para el menú de [[ ]]) */
 .vt-diario__espejo { position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; white-space: pre-wrap; overflow-wrap: anywhere; box-sizing: border-box; border: 0 solid transparent; }
 
-/* los [[enlaces]] en la lectura: en ámbar; los que todavía no existen, punteados y apagados */
+/* los [[enlaces]] en la lectura: en el acento; los que todavía no existen, punteados y apagados */
 .vt-md .md-wiki { color: rgb(var(--vt-acento)); text-decoration: none; border-radius: 3px; box-shadow: inset 0 -1px 0 rgb(var(--vt-acento) / .35); transition: box-shadow var(--op-t-1) var(--op-ease-soft), background-color var(--op-t-1) var(--op-ease-soft); }
 .vt-md .md-wiki:hover { background: rgb(var(--vt-acento) / .1); box-shadow: inset 0 -1px 0 rgb(var(--vt-acento) / .8); }
 .vt-md .md-wiki.is-fantasma { color: rgb(var(--vt-acento) / .6); box-shadow: none; text-decoration: underline dotted rgb(var(--vt-acento) / .45); text-underline-offset: 3px; }

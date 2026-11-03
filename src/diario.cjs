@@ -1,7 +1,7 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Vitra — el Diario de Fran (el núcleo; UmbroSys lleva una copia)
+   Viper — el Diario de Fran (el núcleo; UmbroSys lleva una copia)
    Diseño de Fran con Sam (1/11/2026), la variante «híbrida»: las tripas son
    archivos .md comunes en una carpeta suya (S:\Diario), que sobreviven a
    cualquier app; la cara es la app Diario del escritorio de su PC, y CC entra

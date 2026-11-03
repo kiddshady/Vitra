@@ -1,7 +1,7 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Vitra — que el acrílico no se apague sin foco
+   Viper — que el acrílico no se apague sin foco
    Windows 11 cambia el acrílico de una ventana por un gris liso cuando recibe
    WM_NCACTIVATE(FALSE), o sea, al perder el foco. Mandarle WM_NCACTIVATE(TRUE)
    le devuelve el vidrio sin tocar el foco de verdad: las teclas siguen yendo

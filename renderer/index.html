@@ -3,7 +3,7 @@
      script propio (renderer/vendor/prism.js), así que 'self' alcanza. -->
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
-<title>Vitra</title>
+<title>Viper</title>
 
 <link rel="stylesheet" href="./css/fonts.css">
 <link rel="stylesheet" href="./css/tokens.css">
@@ -29,23 +29,26 @@
     background: #0a0a0a;
     transition: opacity .34s cubic-bezier(.16, 1, .3, 1);
   }
-  #boot-splash svg { width: 46px; height: 46px; stroke: #f2f4f7; fill: none;
-                     stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
-  /* La marca se DIBUJA, no aparece: primero las dos notas y sus enlaces,
-     después la abierta, en ámbar (el ícono: el grafo, Fran 2/11/2026). */
-  #boot-splash path { stroke-dasharray: 48; stroke-dashoffset: 48;
-                      animation: boot-draw .72s cubic-bezier(.16,1,.3,1) forwards; }
-  #boot-splash path:last-child { stroke: #ffb454; stroke-dasharray: 14; stroke-dashoffset: 14;
-                                 animation-delay: .1s; }
-  @keyframes boot-draw { to { stroke-dashoffset: 0 } }
+  /* La marca exacta del ícono, sin la baldosa (Fran, 3/11/2026), aflora:
+     sube 8 px y crece de .96, como entra todo en Opal. La escribe
+     `npm run icon` desde tools/marca.cjs: no se toca a mano. */
+  #boot-splash svg { width: 72px; height: 72px; display: block;
+                     animation: boot-aflora .42s cubic-bezier(.16,1,.3,1) .08s both; }
+  @keyframes boot-aflora { from { opacity: 0; transform: translateY(8px) scale(.96); } }
+  @media (prefers-reduced-motion: reduce) { #boot-splash svg { animation: none; } }
 </style>
 
-<div id="boot-splash">
-  <svg viewBox="0 0 16 16">
-    <path d="M6.15 5.6 9.25 6.9M9.9 9 8.1 10.7M5.1 6.8 6.5 10.5M2.8 5.2a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0-3.4 0M5.4 12a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0"/>
-    <path d="M9.2 7.4a2.1 2.1 0 1 0 4.2 0a2.1 2.1 0 1 0-4.2 0"/>
-  </svg>
-</div>
+<div id="boot-splash"><!-- marca:splash --><svg xmlns="http://www.w3.org/2000/svg" viewBox="56 56 400 400"><defs>
+<radialGradient id="vp-sp-b" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#141f18"/><stop offset="1" stop-color="#060907"/></radialGradient>
+<clipPath id="vp-sp-c"><rect width="512" height="512" rx="97"/></clipPath>
+<linearGradient id="vp-sp-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2c7a45"/><stop offset=".6" stop-color="rgb(156,230,80)"/><stop offset="1" stop-color="#e7ffb0"/></linearGradient>
+</defs><g clip-path="url(#vp-sp-c)">
+<path d="M196 120c-4-46-76-62-98-20c-16 30 2 56 22 76c40 92 82 170 136 220c46-54 74-140 96-214" fill="none" stroke="url(#vp-sp-g)" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M196 120c-4-46-76-62-98-20c-16 30 2 56 22 76c40 92 82 170 136 220c46-54 74-140 96-214" fill="none" stroke="#0a110c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 24" opacity=".55"/>
+<path d="M318 196c-6-52 18-96 64-110c34 12 46 52 30 90c-22 30-62 40-94 20z" fill="rgb(156,230,80)"/>
+<circle cx="376" cy="128" r="13" fill="#ffb43c"/><path d="M376 116.04c-3.9 7.8-3.9 16.12 0 23.92c3.9-7.8 3.9-16.12 0-23.92z" fill="#050806"/>
+<path d="M402 98l32-34m-32 34l40-10" fill="none" stroke="#ff7a8e" stroke-width="7" stroke-linecap="round"/>
+</g></svg><!-- /marca:splash --></div>
 
 <div class="op-app">
 
@@ -55,12 +58,19 @@
 
   <!-- ── Titlebar propia: aire, sin relleno ni línea ───────────────────────── -->
   <header class="op-titlebar">
-    <div class="op-brand op-no-drag" data-tip="Vitra" id="brand">
-      <svg class="op-brand__mark op-icon" viewBox="0 0 16 16" aria-hidden="true">
-        <path d="M6.15 5.6 9.25 6.9M9.9 9 8.1 10.7M5.1 6.8 6.5 10.5M2.8 5.2a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0-3.4 0M5.4 12a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0"/>
-        <path class="op-brand__trail" d="M9.2 7.4a2.1 2.1 0 1 0 4.2 0a2.1 2.1 0 1 0-4.2 0"/>
-      </svg>
-      <span class="op-brand__name">Vitra</span>
+    <div class="op-brand op-no-drag" data-tip="Viper" aria-label="Viper" id="brand">
+      <!-- La marca sola, sin baldosa ni el nombre al lado (Fran, 3/11/2026). La escribe npm run icon. -->
+      <!-- marca:titlebar --><svg class="vp-marca" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="56 56 400 400"><defs>
+<radialGradient id="vp-tb-b" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#141f18"/><stop offset="1" stop-color="#060907"/></radialGradient>
+<clipPath id="vp-tb-c"><rect width="512" height="512" rx="97"/></clipPath>
+<linearGradient id="vp-tb-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2c7a45"/><stop offset=".6" stop-color="rgb(156,230,80)"/><stop offset="1" stop-color="#e7ffb0"/></linearGradient>
+</defs><g clip-path="url(#vp-tb-c)">
+<path d="M196 120c-4-46-76-62-98-20c-16 30 2 56 22 76c40 92 82 170 136 220c46-54 74-140 96-214" fill="none" stroke="url(#vp-tb-g)" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M196 120c-4-46-76-62-98-20c-16 30 2 56 22 76c40 92 82 170 136 220c46-54 74-140 96-214" fill="none" stroke="#0a110c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 24" opacity=".55"/>
+<path d="M318 196c-6-52 18-96 64-110c34 12 46 52 30 90c-22 30-62 40-94 20z" fill="rgb(156,230,80)"/>
+<circle cx="376" cy="128" r="13" fill="#ffb43c"/><path d="M376 116.04c-3.9 7.8-3.9 16.12 0 23.92c3.9-7.8 3.9-16.12 0-23.92z" fill="#050806"/>
+<path d="M402 98l32-34m-32 34l40-10" fill="none" stroke="#ff7a8e" stroke-width="7" stroke-linecap="round"/>
+</g></svg><!-- /marca:titlebar -->
     </div>
     <div class="op-titlebar__context" id="titlebar-context"></div>
   </header>

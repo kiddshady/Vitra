@@ -1,7 +1,7 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Vitra — el humo
+   Viper — el humo
    Abre la app de verdad (main.cjs) sobre un diario y una carpeta de datos
    temporales, y la recorre como Fran: escribe la de hoy, enlaza otra con
    [[ ]], la abre desde el enlace, mira el grafo, y cambia una nota desde
@@ -72,7 +72,11 @@ async function correr() {
   console.log('\n1. El arranque');
   ok('el splash se va', await hasta(win, `!document.getElementById('boot-splash')`, 3000));
   ok('las tres hojas', await js(win, `['.vt-diario__lado', '.vt-diario__hoja', '.vt-diario__panel'].every((s) => document.querySelector(s))`));
-  ok('el vidrio acrílico prendido en el <html>', await js(win, `document.documentElement.classList.contains('vidrio-acrilico')`));
+  ok('la ventana oscura: sin el vidrio acrílico', await js(win, `!document.documentElement.classList.contains('vidrio-acrilico')`));
+  ok('la marca sola en la titlebar: la V, sin el nombre', await js(win, `!!document.querySelector('.op-brand svg.vp-marca') && !document.querySelector('.op-brand__name') && document.querySelector('.op-brand svg.vp-marca').getBoundingClientRect().width === 22`));
+  ok('las escamas en el sustrato', await js(win, `getComputedStyle(document.querySelector('.op-fog')).backgroundImage.includes('156,230,80')`));
+  ok('el acento es el verde veneno', await js(win, `getComputedStyle(document.documentElement).getPropertyValue('--op-accent-rgb').trim() === '156 230 80'`));
+  ok('la nota abierta lleva la luz en el canto', await hasta(win, `!!document.querySelector('.vt-diario__item.is-activo') && getComputedStyle(document.querySelector('.vt-diario__item.is-activo'), '::after').opacity === '1'`));
   ok('sin statusbar', await js(win, `document.querySelector('.op-app').classList.contains('sin-statusbar')`));
   ok('la nota que había, en la lista', await hasta(win, `[...document.querySelectorAll('.vt-diario__item')].some((b) => b.textContent.includes('Bienvenida'))`));
   ok('abre sola la única nota que hay', await hasta(win, `document.querySelector('.vt-diario__titulo')?.textContent.includes('Bienvenida')`));

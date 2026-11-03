@@ -1,11 +1,11 @@
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   VITRA — proceso principal
-   El Diario de Fran como app suelta (nació en UmbroSys 1.20.0). Sobre la
-   plantilla Opal, en la variante acrílico. Lo de abajo es el arranque sin
-   flash de Opal; lo propio de Vitra está al final: el diario (src/diario.cjs),
-   sus canales y el vidrio que no se apaga sin foco (src/vidrio.cjs).
+   VIPER — proceso principal
+   El Diario de Fran como app suelta (nació en UmbroSys 1.20.0). Se llamó
+   Vitra hasta la 0.1.x; desde la 0.2.0 es Viper, sobre la plantilla Opal en
+   la variante oscura. Lo de abajo es el arranque sin flash de Opal; lo propio
+   de Viper está al final: el diario (src/diario.cjs) y sus canales.
 
    Acá pasa lo único de una app Electron que no se puede resolver con CSS: que
    la ventana aparezca SIN un solo frame blanco.
@@ -38,6 +38,17 @@
 
 const { app, BrowserWindow, ipcMain, nativeTheme, screen, shell } = require('electron');
 const path = require('path');
+
+/* Viper se llamó Vitra hasta la 0.1.x, y con el productName cambia la carpeta
+   de datos: %APPDATA%\Vitra → %APPDATA%\Viper. Quien viene de Vitra se muda
+   al arrancar, renombrando la carpeta entera; si no se puede, esta vez usa la
+   vieja (src/carpeta.cjs). Va antes de cargar el store, que calcula su raíz
+   al requerirse, y antes de que Chromium escriba nada en userData. En
+   desarrollo los datos van a data/ y esto no toca nada; tampoco pisa a quien
+   pide otra carpeta a propósito (--user-data-dir o VITRA_DATA, los tests). */
+if (app.isPackaged && !process.env.VITRA_DATA && !app.commandLine.hasSwitch('user-data-dir')) {
+  app.setPath('userData', require('./src/carpeta.cjs').elegir(app.getPath('appData')).dir);
+}
 const ipc = require('./src/ipc.cjs');
 const store = require('./src/store.cjs');
 const { keepAlive } = require('./src/recover.cjs');
@@ -58,9 +69,11 @@ const BG = '#0a0a0a';
    --op-bg que mandó el renderer queda guardado para cuando se apague. El tema
    va forzado a oscuro porque el acrílico sigue al de Windows: en modo claro
    sería blanco. Sin foco, Windows lo cambia por un gris liso: src/vidrio.cjs
-   se lo devuelve con WM_NCACTIVATE, como Moji. Vitra nace acrílico siempre. */
+   se lo devuelve con WM_NCACTIVATE, como Moji.
+   Vitra nacía acrílica; Viper nace OSCURA (Fran, 3/11/2026): la ventana es
+   opaca y el vidrio queda apagado. La receta sigue acá por si vuelve. */
 const CLEAR = '#00000000';
-let acrilico = true;
+let acrilico = false;
 let bgHex = BG;
 nativeTheme.themeSource = 'dark';
 
@@ -283,7 +296,7 @@ deDiario('diario:papelera', (ref) => diario.aPapelera(txt(ref)));
 deDiario('diario:abrir-carpeta', async () => { const err = await shell.openPath(diario.dir); if (err) throw new Error(err); return true; });
 app.on('before-quit', () => diario.cerrar());
 
-/* ── Una sola Vitra ──────────────────────────────────────────────────────────
+/* ── Una sola Viper ──────────────────────────────────────────────────────────
    Dos ventanas sobre la misma carpeta no se pisan (el guardado con base lo
    evita), pero se confunde cuál es cuál: la segunda trae la primera adelante. */
 const unica = process.env.VITRA_VARIAS === '1' || app.requestSingleInstanceLock();
@@ -300,7 +313,7 @@ app.whenReady().then(async () => {
   ipc.register();
   createWindow(await loadWindowState());
   /* Autoupdate (pedido de Fran, 2/11/2026): busca un rato después de abrir y
-     cada 4 horas, una versión nueva se baja sola y entra al cerrar Vitra
+     cada 4 horas, una versión nueva se baja sola y entra al cerrar Viper
      (src/actualizador.cjs). Reiniciar antes queda en el menú «Más». */
   actualizador.iniciar(() => win, { autoDescargar: true });
   setTimeout(() => actualizador.buscar({ manual: false }), 6000);
