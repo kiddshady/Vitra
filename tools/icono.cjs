@@ -2,8 +2,8 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    El ícono de Viper (el molde es el de UmbroSys, tools/icono.cjs).
 
-   El dibujo es uno solo, tools/marca.cjs: la V enroscada con la cola en
-   espiral. Esto escribe:
+   El dibujo es uno solo, tools/marca.cjs: el ojo de víbora en el centro
+   de un grafo hexagonal (lo hizo Fran). Esto escribe:
      · build/icon.png (1024, el maestro) y build/icon.ico (16 a 256): con la
        baldosa, cada tamaño dibujado desde el vector a su tamaño, el MISMO
        dibujo en todos, sin versiones simplificadas para los chicos;

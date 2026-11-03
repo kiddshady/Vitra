@@ -1,34 +1,25 @@
 'use strict';
 /* ═══════════════════════════════════════════════════════════════════════════
-   La marca de Viper: la V enroscada con la cola en espiral (elegida por Fran
-   el 3/11/2026 en S:\mockups\viper, entre siete variantes de la V y seis del
-   ojo). Es el ÚNICO dibujo: de acá salen el ícono (tools/icono.cjs, con
-   baldosa), la marca de la titlebar y el splash (sin baldosa, en
-   renderer/index.html). Así no pueden desfasarse.
+   La marca de Viper: el ojo de víbora en el centro de un grafo hexagonal.
+   La hizo Fran (3/11/2026, C:\Users\francisco\Desktop\viper-icon\icon.svg) y
+   va tal cual: los mismos números de su SVG. Antes era la V enroscada.
 
-   Lienzo de 512. La baldosa va a sangre, radio 97 (19 %), sin borde. Las
-   escamas de la baldosa son las mismas del sustrato de la app, más grandes.
+   Es el ÚNICO dibujo: de acá salen el ícono (tools/icono.cjs, con baldosa),
+   la marca de la titlebar y el splash (sin baldosa, en renderer/index.html).
+   Así no pueden desfasarse.
+
+   Lienzo de 512. La baldosa va a sangre, radio 97 (19 %), sin borde.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const VERDE = '156 230 80';   // el acento (tokens.css, --op-accent-rgb)
-const rgb = (v, a = 1) => (a < 1 ? `rgba(${v.split(' ').join(',')},${a})` : `rgb(${v.split(' ').join(',')})`);
+const v = VERDE.split(' ').join(',');
 
-const CUERPO = 'M196 120c-4-46-76-62-98-20c-16 30 2 56 22 76c40 92 82 170 136 220c46-54 74-140 96-214';
-const CABEZA = 'M318 196c-6-52 18-96 64-110c34 12 46 52 30 90c-22 30-62 40-94 20z';
-
-function escamasBaldosa(a) {
-  let p = '';
-  for (let f = -1; f < 14; f++) {
-    const y = f * 36, off = (f & 1) ? 0 : 28;
-    for (let x = -56 + off; x < 560; x += 56) p += `M${x} ${y}a28 36 0 0 0 56 0`;
-  }
-  return `<path d="${p}" fill="none" stroke="${rgb(VERDE, a)}" stroke-width="5"/>`;
-}
+const NODOS = [[256.0, 80.0], [408.4, 168.0], [408.4, 344.0], [256.0, 432.0], [103.6, 344.0], [103.6, 168.0]];
 
 /**
  * El SVG de la marca.
  * @param {{ baldosa?: boolean, encuadre?: string, id?: string, tam?: number }} o
- *   baldosa: con la baldosa y sus escamas (el ícono) o el dibujo solo (titlebar, splash)
+ *   baldosa: con la baldosa (el ícono) o el dibujo solo (titlebar, splash)
  *   encuadre: otro viewBox para acercar el dibujo cuando va sin baldosa
  *   id: prefijo de los ids (dos copias en el mismo documento no pueden compartirlos)
  */
@@ -36,19 +27,24 @@ function marca({ baldosa = true, encuadre = '0 0 512 512', id = 'vp', tam = null
   const k = (n) => `${id}-${n}`;
   const medida = tam ? ` width="${tam}" height="${tam}"` : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${encuadre}"${medida}><defs>
-<radialGradient id="${k('b')}" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#141f18"/><stop offset="1" stop-color="#060907"/></radialGradient>
+<radialGradient id="${k('b')}" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#101c15"/><stop offset="1" stop-color="#050806"/></radialGradient>
 <clipPath id="${k('c')}"><rect width="512" height="512" rx="97"/></clipPath>
-<linearGradient id="${k('g')}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2c7a45"/><stop offset=".6" stop-color="${rgb(VERDE)}"/><stop offset="1" stop-color="#e7ffb0"/></linearGradient>
-</defs><g clip-path="url(#${k('c')})">${baldosa ? `<rect width="512" height="512" fill="url(#${k('b')})"/>${escamasBaldosa(.05)}` : ''}
-<path d="${CUERPO}" fill="none" stroke="url(#${k('g')})" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="${CUERPO}" fill="none" stroke="#0a110c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 24" opacity=".55"/>
-<path d="${CABEZA}" fill="${rgb(VERDE)}"/>
-<circle cx="376" cy="128" r="13" fill="#ffb43c"/><path d="M376 116.04c-3.9 7.8-3.9 16.12 0 23.92c3.9-7.8 3.9-16.12 0-23.92z" fill="#050806"/>
-<path d="M402 98l32-34m-32 34l40-10" fill="none" stroke="#ff7a8e" stroke-width="7" stroke-linecap="round"/>
+<radialGradient id="${k('i')}" cx="46%" cy="44%" r="60%"><stop offset="0" stop-color="#ffe08a"/><stop offset=".45" stop-color="#ffb43c"/><stop offset="1" stop-color="#a85410"/></radialGradient>
+</defs><g clip-path="url(#${k('c')})">${baldosa ? `<rect width="512" height="512" fill="url(#${k('b')})"/>` : ''}
+<path d="M${NODOS.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' ')}z" fill="none" stroke="rgba(${v},0.28)" stroke-width="7" stroke-linejoin="round"/>
+<path d="${NODOS.map(([x, y]) => `M256 256L${x.toFixed(1)} ${y.toFixed(1)}`).join(' ')}" fill="none" stroke="rgba(${v},0.5)" stroke-width="10" stroke-linecap="round"/>
+${NODOS.map(([x, y]) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="30" fill="rgb(${v})"/>`).join('')}
+<circle cx="256" cy="256" r="104" fill="#050806"/>
+<circle cx="256" cy="256" r="88" fill="url(#${k('i')})"/>
+<circle cx="256" cy="256" r="63.36" fill="none" stroke="#000" stroke-opacity=".14" stroke-width="4.4"/>
+<circle cx="256" cy="256" r="85.36" fill="none" stroke="#2a1404" stroke-opacity=".55" stroke-width="5.28"/>
+<path d="M256 172.4c-20.68 39.6 -20.68 127.6 0 167.2c20.68 -39.6 20.68 -127.6 0 -167.2z" fill="#050806"/>
+<ellipse cx="290.32" cy="219.92" rx="15.84" ry="10.12" fill="#fff" opacity=".55" transform="rotate(-28 290.32 219.92)"/>
 </g></svg>`;
 }
 
-/** Sin baldosa el dibujo ocupa el centro del lienzo: este encuadre lo acerca sin cambiarlo. */
-const ENCUADRE_SUELTO = '56 56 400 400';
+/** Sin baldosa el dibujo ocupa el centro del lienzo: este encuadre lo acerca sin cambiarlo
+    (los nodos de arriba y abajo llegan a y = 50 y 462). */
+const ENCUADRE_SUELTO = '40 40 432 432';
 
 module.exports = { marca, ENCUADRE_SUELTO, VERDE };
