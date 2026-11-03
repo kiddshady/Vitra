@@ -45,6 +45,13 @@ npm run icon    # build/icon.png + icon.ico, y la marca de la titlebar y del spl
 - **Las escamas del sustrato** llevan el verde escrito en el SVG de
   `vitra.css`: si cambia el acento (`tools/retint.mjs --accent`), cambiarlo ahí
   y en `tools/marca.cjs` también.
+- **Cada entrada de un día lleva su hora** («## 14:32»), sí o sí. El núcleo
+  se la pone a todo lo que entra a un día (`agregar`, `enlazar`, `crear` con
+  texto: lo de CC por el MCP). En la app queda armada al entrar a escribir un
+  día y se escribe con la primera letra que cae al final de la nota; corregir
+  más arriba no cuenta, y después de media hora sin teclear lo que sigue es
+  otra entrada. En la lectura se ve como una marca verde en la mono.
+  UmbroSys tiene su propia copia del núcleo y su Diario no la pone.
 - **La carpeta es compartida.** UmbroSys abre la misma `S:\Diario` con su
   propia copia del núcleo, y CC escribe por el MCP. Guardar va con el hash que
   se leyó: si alguien cambió la nota en el medio, vuelve un conflicto y se
