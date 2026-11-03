@@ -129,6 +129,7 @@ export function montarDiario(raiz, { menuExtra = null } = {}) {
   let sucio = false, tGuardar = 0, guardando = null;
   let pintadoVacio = null;
   let vivo = true;
+  let armada = false, ultimaTecla = 0;   // la hora de la próxima entrada (ver «La hora de cada entrada»)
 
   const mini = crearGrafo($('.vt-diario__mini'), { chico: true, alElegir: (n) => elegirDelGrafo(n) });
   let grande = null;
@@ -270,6 +271,7 @@ export function montarDiario(raiz, { menuExtra = null } = {}) {
     editor.value = n.texto;
     // escribir: true/false lo decide quien abre; sin decir, las vacías abren para escribir
     modo = (escribir ?? n.vacia) ? 'escribir' : 'leer';
+    armar();
     if (enGrafo) alternarGrafo(false);
     pintarNota();
     pintarLista();
@@ -320,6 +322,7 @@ export function montarDiario(raiz, { menuExtra = null } = {}) {
     if (enGrafo) alternarGrafo(false);
     modo = a;
     if (modo === 'leer') { guardarYa(); cerrarSugerir(); }
+    armar();
     pintarNota();
     cuerpoFoco();
   }
@@ -341,6 +344,37 @@ export function montarDiario(raiz, { menuExtra = null } = {}) {
     if (n.fantasma) crearNota(n.titulo);
     else abrir(n.id);
   }
+
+  /* ── La hora de cada entrada (Fran, 3/11/2026: «sí o sí») ────────────────
+     En la nota de un día, cada entrada empieza con su hora: «## 14:32» (la
+     misma que pone el núcleo a lo que entra por el MCP). Al entrar a escribir
+     un día la hora queda ARMADA, y se escribe recién con la primera letra que
+     cae al final de la nota, junto con esa letra: así es la hora en que se
+     escribió, nunca queda una hora sola, y corregir algo de más arriba no
+     cuenta como entrada nueva. Escribir de corrido es una sola entrada; si
+     pasa media hora sin tocar una tecla, lo que sigue es otra. Va con
+     execCommand para que Ctrl+Z la saque junto con la letra. */
+  const PAUSA_ENTRADA = 30 * 60 * 1000;
+  const horaAhora = () => { const d = new Date(); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+  function armar() {
+    armada = !!actual?.dia && modo === 'escribir';
+    ultimaTecla = 0;
+  }
+  editor.addEventListener('beforeinput', (e) => {
+    if (!actual?.dia || !/^insert(Text|LineBreak|Paragraph|FromPaste|FromDrop|ReplacementText)$/.test(e.inputType)) return;
+    if (!armada && ultimaTecla && Date.now() - ultimaTecla > PAUSA_ENTRADA) armada = true;
+    ultimaTecla = Date.now();
+    if (!armada) return;
+    const v = editor.value, c = editor.selectionStart;
+    if (editor.selectionEnd !== c || v.slice(c).trim()) return;   // corrigiendo algo de antes: no es una entrada nueva
+    armada = false;
+    const dato = /LineBreak|Paragraph/.test(e.inputType) ? '\n'
+      : (e.data ?? e.dataTransfer?.getData('text/plain') ?? '');
+    const base = v.replace(/\s+$/, '');
+    e.preventDefault();
+    editor.setSelectionRange(base.length, v.length);
+    document.execCommand('insertText', false, `${base ? '\n\n' : ''}## ${horaAhora()}\n\n${dato}`);
+  });
 
   /* ── Guardar ─────────────────────────────────────────────────────────── */
   function ponerEstado(t, tono = '') {

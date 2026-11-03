@@ -10,7 +10,7 @@ import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const require = createRequire(import.meta.url);
-const { crearDiario, enlacesDe, separarFrontmatter, diaDe, tituloValido } = require('../src/diario.cjs');
+const { crearDiario, enlacesDe, separarFrontmatter, diaDe, horaDe, sellar, tituloValido } = require('../src/diario.cjs');
 const aqui = path.dirname(fileURLToPath(import.meta.url));
 
 let pass = 0, fail = 0;
@@ -59,6 +59,24 @@ console.log('\n3. Agregar y enlazar: solo suman');
   const e1 = await d.enlazar('2026-01-05', 'GABA');
   const e2 = await d.enlazar('2026-01-05', 'gaba');
   ok('enlazar suma un [[ ]] una sola vez', e1.texto.trimEnd().endsWith('[[GABA]]') && e2.yaEstaba && (await d.leer('2026-01-05')).texto.match(/\[\[GABA\]\]/g).length === 1);
+}
+
+console.log('\n3-bis. La hora de cada entrada (en los días, sí o sí)');
+{
+  const hora = /^## \d{2}:\d{2}$/;
+  const hoyTxt = (await d.leer(diaDe())).texto;
+  const bloques = hoyTxt.trim().split(/\n\n/);
+  ok('agregar a un día pone la hora antes de la entrada', hora.test(bloques[0]) && bloques[1].includes('[[Parcial de Medicinal]]'), JSON.stringify(hoyTxt));
+  ok('  la hora de ahora, en la de la UCX', bloques[0] === `## ${horaDe()}` || bloques[0] === `## ${horaDe(new Date(Date.now() - 60000))}`, bloques[0]);
+  const viejo = (await d.leer('2026-01-05')).texto;
+  ok('  cada entrada con la suya (también la de enlazar)', (viejo.match(/^## \d{2}:\d{2}$/gm) || []).length === 2, JSON.stringify(viejo));
+  await d.agregar('hoy', '## 09:15\n\nYa trae su hora.');
+  ok('  si la entrada ya trae su hora, no se le pone otra', (await d.leer(diaDe())).texto.trimEnd().endsWith('## 09:15\n\nYa trae su hora.') && !/## \d{2}:\d{2}\n\n## 09:15/.test((await d.leer(diaDe())).texto));
+  ok('  a una nota que no es un día, sin hora', !/^## \d{2}:\d{2}$/m.test((await d.leer('Parcial de Medicinal')).texto));
+  const nace = await d.crear({ titulo: '2026-02-10', texto: 'Nace con texto.' });
+  ok('un día que nace con texto: la entrada lleva su hora', /^## \d{2}:\d{2}\n\nNace con texto\.\n$/.test(nace.texto), JSON.stringify(nace.texto));
+  fs.rmSync(path.join(tmp, 'diario', '2026-02-10.md'));   // la carpeta es del test: que no cambie lo que cuentan los de abajo
+  ok('sellar: la hora con dos cifras', sellar('x', new Date(2026, 0, 1, 7, 5)) === '## 07:05\n\nx');
 }
 
 console.log('\n4. Backlinks, búsqueda y grafo');

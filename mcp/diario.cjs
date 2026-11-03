@@ -23,7 +23,7 @@ const VERSION = require(path.join(__dirname, '..', 'package.json')).version;
 
 const diario = crearDiario();
 
-const INSTRUCCIONES = `El diario personal de Fran: notas Markdown en ${diario.dir}. Cada nota se nombra por su título, y las de cada día por su fecha (AAAA-MM-DD; «hoy» también vale). [[Título]] enlaza una nota con otra. Leé y buscá con libertad cuando Fran te lo pida o te lo nombre; escribí solo lo que él te pida que anotes. No hay herramientas para borrar ni para reescribir una nota: crear nunca pisa, agregar suma al final y enlazar suma un [[ ]].`;
+const INSTRUCCIONES = `El diario personal de Fran: notas Markdown en ${diario.dir}. Cada nota se nombra por su título, y las de cada día por su fecha (AAAA-MM-DD; «hoy» también vale). [[Título]] enlaza una nota con otra. Leé y buscá con libertad cuando Fran te lo pida o te lo nombre; escribí solo lo que él te pida que anotes. No hay herramientas para borrar ni para reescribir una nota: crear nunca pisa, agregar suma al final y enlazar suma un [[ ]]. En la nota de un día, cada entrada empieza con su hora («## 14:32»): agregar se la pone sola, no la escribas vos.`;
 
 const texto = { type: 'string' };
 const HERRAMIENTAS = [
@@ -101,7 +101,7 @@ const HERRAMIENTAS = [
   },
   {
     name: 'agregar',
-    description: `Suma texto al final de una nota del diario, sin tocar lo que ya tiene. Si es un día (AAAA-MM-DD o «hoy», que es ${diaDe()}) y todavía no existe, la crea.`,
+    description: `Suma texto al final de una nota del diario, sin tocar lo que ya tiene. Si es un día (AAAA-MM-DD o «hoy», que es ${diaDe()}) y todavía no existe, la crea; en un día, la entrada nueva empieza sola con la hora («## HH:MM»).`,
     inputSchema: {
       type: 'object',
       properties: {

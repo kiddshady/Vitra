@@ -56,6 +56,17 @@ const esFecha = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s)) && !Number.isNaN(Da
 const dos = (n) => String(n).padStart(2, '0');
 /** El día de hoy (o de `d`) en la hora local de la UCX, como AAAA-MM-DD. */
 const diaDe = (d = new Date()) => `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`;
+/** La hora de ahora (o de `d`) en la UCX, como HH:MM. */
+const horaDe = (d = new Date()) => `${dos(d.getHours())}:${dos(d.getMinutes())}`;
+
+/* ── La hora de cada entrada (Fran, 3/11/2026: «sí o sí») ─────────────────────
+   En la nota de un día, cada entrada empieza con su hora como título de
+   segundo nivel: «## 14:32». Todo lo que entra a un día por acá (agregar,
+   enlazar, crear con texto: o sea, todo lo de CC por el MCP) la lleva, y la
+   app la pone sola al empezar a escribir una entrada nueva (diario.js). Si el
+   texto ya empieza con una hora, no se le pone otra. */
+const RE_SELLO = /^##[ \t]+\d{1,2}:\d{2}[ \t]*(\n|$)/;
+const sellar = (t, d = new Date()) => (RE_SELLO.test(t) ? t : `## ${horaDe(d)}\n\n${t}`);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /* Un título sirve de nombre de archivo: sin las letras que Windows no deja,
@@ -333,7 +344,8 @@ function crearDiario({ dir = carpetaPorDefecto(), vigilar = false } = {}) {
       if (ya) throw new Error(`ya hay una nota «${ya.titulo}»: no se pisa (usá agregar para sumarle texto)`);
       const id = dia ? `${CARPETA_DIAS}/${dia}` : t;
       if (fs.existsSync(rutaDe(id))) throw new Error(`ya existe ${rutaDe(id)}`);
-      const cuerpo = norm(texto).replace(/^\n+/, '');
+      let cuerpo = norm(texto).replace(/^\n+/, '');
+      if (dia && cuerpo.trim()) cuerpo = sellar(cuerpo);   // un día que nace con texto: la entrada lleva su hora
       // la fecha va arriba solo si se pide: si no, sale del archivo (una nota nueva no arranca con datos encima)
       const fm = armarFrontmatter({ fecha: !dia && esFecha(fecha) ? fecha : null, etiquetas: etiquetas.map((e) => String(e).replace(/^#/, '').trim()).filter(Boolean) });
       return escribir(id, `${fm}${cuerpo}${cuerpo && !cuerpo.endsWith('\n') ? '\n' : ''}`);
@@ -346,7 +358,7 @@ function crearDiario({ dir = carpetaPorDefecto(), vigilar = false } = {}) {
       return (await buscarNota(f)) || api.crear({ titulo: f });
     },
 
-    /** Suma texto al final de una nota. Si es un día y no está, la crea. */
+    /** Suma texto al final de una nota. Si es un día y no está, la crea; en un día, la entrada lleva su hora. */
     async agregar(ref, texto) {
       const t = norm(texto).trim();
       if (!t) throw new Error('no hay nada para agregar');
@@ -356,7 +368,8 @@ function crearDiario({ dir = carpetaPorDefecto(), vigilar = false } = {}) {
       if (!n && (clave(r) === 'hoy' || esFecha(r))) n = await api.dia(r);
       if (!n) throw new Error(`no hay ninguna nota «${r}» en el diario (creala primero)`);
       const base = n.texto.replace(/\s+$/, '');
-      return escribir(n.id, `${base}${base ? '\n\n' : ''}${t}\n`, { antes: n.texto ? n : null });
+      const entrada = n.dia ? sellar(t) : t;
+      return escribir(n.id, `${base}${base ? '\n\n' : ''}${entrada}\n`, { antes: n.texto ? n : null });
     },
 
     /** Suma un [[enlace]] de una nota a otra (al final). Si ya la nombra, no hace nada. */
@@ -491,4 +504,4 @@ function crearDiario({ dir = carpetaPorDefecto(), vigilar = false } = {}) {
   return api;
 }
 
-module.exports = { crearDiario, carpetaPorDefecto, enlacesDe, separarFrontmatter, clave, diaDe, esFecha, tituloValido, hashDe, CARPETA_DIAS, OCULTA };
+module.exports = { crearDiario, carpetaPorDefecto, enlacesDe, separarFrontmatter, clave, diaDe, horaDe, sellar, esFecha, tituloValido, hashDe, CARPETA_DIAS, OCULTA };

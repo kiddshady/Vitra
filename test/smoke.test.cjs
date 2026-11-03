@@ -73,7 +73,7 @@ async function correr() {
   ok('el splash se va', await hasta(win, `!document.getElementById('boot-splash')`, 3000));
   ok('las tres hojas', await js(win, `['.vt-diario__lado', '.vt-diario__hoja', '.vt-diario__panel'].every((s) => document.querySelector(s))`));
   ok('la ventana oscura: sin el vidrio acrílico', await js(win, `!document.documentElement.classList.contains('vidrio-acrilico')`));
-  ok('la marca sola en la titlebar: la V, sin el nombre', await js(win, `!!document.querySelector('.op-brand svg.vp-marca') && !document.querySelector('.op-brand__name') && document.querySelector('.op-brand svg.vp-marca').getBoundingClientRect().width === 22`));
+  ok('la marca sola en la titlebar: el ojo, sin el nombre', await js(win, `!!document.querySelector('.op-brand svg.vp-marca') && !document.querySelector('.op-brand__name') && document.querySelector('.op-brand svg.vp-marca').getBoundingClientRect().width === 22`));
   ok('las escamas en el sustrato', await js(win, `getComputedStyle(document.querySelector('.op-fog')).backgroundImage.includes('156,230,80')`));
   ok('el acento es el verde veneno', await js(win, `getComputedStyle(document.documentElement).getPropertyValue('--op-accent-rgb').trim() === '156 230 80'`));
   ok('la nota abierta lleva la luz en el canto', await hasta(win, `!!document.querySelector('.vt-diario__item.is-activo') && getComputedStyle(document.querySelector('.vt-diario__item.is-activo'), '::after').opacity === '1'`));
@@ -102,10 +102,26 @@ async function correr() {
   for (let i = 0; i < 60 && !guardado; i++) { guardado = fs.existsSync(archivo) && fs.readFileSync(archivo, 'utf8').includes('estudié para el final'); await espera(50); }
   ok('se guarda en diario/AAAA-MM-DD.md', guardado);
   ok('  y lo dice', await hasta(win, `document.querySelector('.vt-diario__estado').textContent.includes('Guardado')`));
+  const enDisco = fs.readFileSync(archivo, 'utf8');
+  ok('la entrada empieza con la hora en que se escribió, una sola vez', /^## \d{2}:\d{2}\n\nHoy estudié/.test(enDisco) && (enDisco.match(/^## \d{2}:\d{2}$/gm) || []).length === 1, JSON.stringify(enDisco));
 
   console.log('\n3. Leer y seguir un enlace');
   await teclas(win, ['Control+E']);
   ok('Ctrl+E pasa a leer', await hasta(win, `!document.querySelector('.vt-diario__hoja').classList.contains('is-escribir')`));
+  ok('  la hora se lee como la marca de la entrada', await hasta(win, `/^\\d{2}:\\d{2}$/.test(document.querySelector('.vt-md h2.md-hora time')?.textContent || '')`));
+  await teclas(win, ['Control+E']);
+  ok('  volver a escribir y corregir arriba no pone otra hora', await hasta(win, `document.querySelector('.vt-diario__hoja').classList.contains('is-escribir')`));
+  await js(win, `(() => { const e = document.querySelector('.vt-diario__editor'); e.focus(); const i = e.value.indexOf('estudié'); e.setSelectionRange(i, i); })()`);
+  await escribir(win, 'x');
+  ok('  (sigue habiendo una sola)', ((await js(win, `document.querySelector('.vt-diario__editor').value`)).match(/^## \d{2}:\d{2}$/gm) || []).length === 1);
+  await teclas(win, ['Control+Z']);
+  await js(win, `(() => { const e = document.querySelector('.vt-diario__editor'); e.setSelectionRange(e.value.length, e.value.length); })()`);
+  await escribir(win, 'Otra cosa.');
+  ok('  pero escribir al final es una entrada nueva, con su hora', ((await js(win, `document.querySelector('.vt-diario__editor').value`)).match(/^## \d{2}:\d{2}$/gm) || []).length === 2 && /## \d{2}:\d{2}\n\nOtra cosa\.$/.test(await js(win, `document.querySelector('.vt-diario__editor').value`)), await js(win, `document.querySelector('.vt-diario__editor').value`));
+  await teclas(win, ['Control+E']);
+  ok('  y de vuelta a leer', await hasta(win, `!document.querySelector('.vt-diario__hoja').classList.contains('is-escribir')`));
+  await espera(700);
+  await foto(win, '2b-horas');
   await js(win, `document.querySelector('.vt-md .md-wiki')?.click()`);
   ok('el enlace crea la nota que no existía y la abre', await hasta(win, `/Biol/.test(document.querySelector('.vt-diario__titulo').textContent)`));
   ok('  y quedó en disco', fs.readdirSync(DIARIO).some((x) => /^Biol.*\.md$/.test(x)), fs.readdirSync(DIARIO).join(', '));

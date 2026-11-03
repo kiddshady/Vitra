@@ -13,7 +13,7 @@
        Praxio;
      · la niebla junta luz, verde y un poco del ámbar del ojo;
      · el acento es el verde del veneno (tools/retint.mjs --accent "156 230 80");
-     · la marca es el ícono de verdad (la V enroscada), sin baldosa y sin el
+     · la marca es el ícono de verdad (el ojo en el grafo hexagonal, de Fran), sin baldosa y sin el
        nombre al lado: la escribe npm run icon en el index;
      · la nota abierta lleva una luz en el canto izquierdo (el rail de
        Praxio) y el h1 de una nota, una quilla verde.
@@ -113,6 +113,10 @@
 /* la quilla: una rayita verde antes del título de una nota */
 .vt-md h1::before { content: ''; position: absolute; left: -14px; top: .36em; width: 3px; height: .8em; border-radius: 2px; background: linear-gradient(var(--op-accent), rgb(var(--op-accent-rgb) / .2)); }
 .vt-md h2 { font-size: var(--op-fs-15); }
+/* la hora de una entrada del día («## 14:32»): chica, en la mono y en el verde, con una
+   luz como la de la nota abierta. Entre dos entradas, el aire de un título. */
+.vt-md h2.md-hora { display: flex; align-items: center; gap: 8px; margin: 1.7em 0 .5em; font: var(--op-w-semi) var(--op-fs-12) / 1.3 var(--op-mono); letter-spacing: .02em; font-variant-numeric: tabular-nums; color: rgb(var(--op-accent-rgb) / .92); }
+.vt-md h2.md-hora::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--op-accent); box-shadow: 0 0 8px rgb(var(--op-accent-rgb) / .7); }
 .vt-md h3 { font-size: var(--op-fs-13); }
 .vt-md :is(h4, h5, h6) { font-size: var(--op-fs-12); color: var(--op-text-2); }
 .vt-md strong { color: var(--op-text); font-weight: var(--op-w-semi); }

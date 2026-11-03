@@ -26,7 +26,7 @@ npm run icon    # build/icon.png + icon.ico, y la marca de la titlebar y del spl
 | El grafo (canvas propio) | `renderer/js/diario/grafo.js` |
 | Markdown y el color del código (Prism) | `renderer/js/md.js`, `renderer/js/resaltar.js` |
 | La piel (escamas, niebla, la luz de la nota abierta) | `renderer/css/vitra.css` |
-| La marca: la V enroscada, un solo dibujo | `tools/marca.cjs` (lo usa `tools/icono.cjs`) |
+| La marca: el ojo en el grafo hexagonal, un solo dibujo | `tools/marca.cjs` (lo usa `tools/icono.cjs`) |
 | Actualizaciones (el de Tessera) | `src/actualizador.cjs`, `renderer/js/actualizar.js` |
 | El acrílico que no se apaga sin foco, apagado desde la 0.2.0 | `src/vidrio.cjs` |
 

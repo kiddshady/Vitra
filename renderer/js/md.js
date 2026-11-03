@@ -112,7 +112,9 @@ function bloques(r, resaltar) {
     if ((m = RE.titulo.exec(l))) {
       cerrarParrafo();
       const n = m[1].length;
-      out.push(`<h${n}>${enLinea(m[2])}</h${n}>`);
+      // «## 14:32»: la hora de una entrada del día (src/diario.cjs), no un título más
+      const hora = n === 2 && /^\d{1,2}:\d{2}$/.test(m[2]);
+      out.push(hora ? `<h2 class="md-hora"><time>${m[2]}</time></h2>` : `<h${n}>${enLinea(m[2])}</h${n}>`);
       i++; continue;
     }
     if (RE.separador.test(l) && !parrafo.length) { out.push('<hr>'); i++; continue; }
